@@ -4,3 +4,4 @@ numpy==2.2.6
 plotly==6.7.0
 matplotlib==3.10.8
 wordcloud==1.9.6
+plotly
