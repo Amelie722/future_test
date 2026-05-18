@@ -1,0 +1,6 @@
+streamlit==1.55.0
+pandas==2.3.3
+numpy==2.2.6
+plotly==6.7.0
+matplotlib==3.10.8
+wordcloud==1.9.6
