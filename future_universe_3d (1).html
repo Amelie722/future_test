@@ -176,7 +176,7 @@ scene.fog = new THREE.Fog(0x0a0a0a, 10, 50);
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.z = 15;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x0a0a0a);
 document.getElementById('canvas-container').appendChild(renderer.domElement);
@@ -334,7 +334,7 @@ nodes.forEach((node, idx) => {
   if (node.type === 'expert') {
     geometry = createStarGeometry(node.size);
   } else {
-    geometry = new THREE.SphereGeometry(node.size, 32, 32);
+    geometry = new THREE.SphereGeometry(node.size, 16, 16);
   }
   
   const material = new THREE.MeshPhongMaterial({ 
@@ -688,6 +688,8 @@ function toScreenPosition(obj, camera) {
 }
 
 // 애니메이션
+let lastLabelUpdate = 0;
+
 function animate() {
   requestAnimationFrame(animate);
   
@@ -696,22 +698,31 @@ function animate() {
     rotation.y += 0.001;
   }
   
-  // 노드들 자전
-  nodeMeshes.forEach((mesh, idx) => {
-    mesh.rotation.y += 0.01;
-    mesh.rotation.x += 0.005;
+  // 라벨 업데이트를 200ms마다 진행 (throttle)
+  const now = Date.now();
+  if (now - lastLabelUpdate > 200) {
+    lastLabelUpdate = now;
     
-    // 라벨 위치 업데이트
-    const pos = toScreenPosition(mesh, camera);
-    const label = nodeLabels[idx];
-    
-    // 카메라 앞에 있을 때만 표시
-    if (pos.z < 1) {
-      label.style.display = 'block';
-      label.style.left = pos.x + 'px';
-      label.style.top = (pos.y - 25) + 'px'; // 노드 위에 표시
-    } else {
-      label.style.display = 'none';
+    nodeMeshes.forEach((mesh, idx) => {
+      const pos = toScreenPosition(mesh, camera);
+      const label = nodeLabels[idx];
+      
+      // 카메라 앞에 있을 때만 표시
+      if (pos.z < 1) {
+        label.style.display = 'block';
+        label.style.left = pos.x + 'px';
+        label.style.top = (pos.y - 25) + 'px';
+      } else {
+        label.style.display = 'none';
+      }
+    });
+  }
+  
+  // 노드 회전 줄임 (선택된 노드만 회전)
+  nodeMeshes.forEach((mesh) => {
+    if (mesh.scale.x > 1.05) { // 선택/강조된 노드만 회전
+      mesh.rotation.y += 0.02;
+      mesh.rotation.x += 0.01;
     }
   });
   
