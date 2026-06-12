@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
-_openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+_openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY")) if (os.getenv("OPENAI_API_KEY") or "").strip().startswith("sk-") else None
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
