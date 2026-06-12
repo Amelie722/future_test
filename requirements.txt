@@ -1,6 +1,7 @@
 streamlit
 pandas
-numpy
 plotly
 matplotlib
 wordcloud
+openai
+python-dotenv
