@@ -145,6 +145,20 @@ body {
 #clear-universe-btn:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+#label-toggle-btn, #fit-view-btn {
+  width: 100%;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #dbe6ff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+#label-toggle-btn:hover, #fit-view-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
 #universe-stats {
   margin-top: 12px;
   padding-top: 12px;
@@ -166,16 +180,19 @@ body {
 .node-label {
   position: absolute;
   color: white;
-  font-size: 11px;
+  font-size: 10px;
   pointer-events: none;
   text-shadow: 0 0 8px rgba(0,0,0,0.9), 0 0 3px rgba(0,0,0,1);
   font-weight: 500;
   white-space: nowrap;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.4);
-  padding: 3px 8px;
+  transform: translate(-50%, -100%);
+  background: rgba(0, 0, 0, 0.58);
+  padding: 3px 7px;
   border-radius: 4px;
   backdrop-filter: blur(4px);
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
 </head>
@@ -195,10 +212,12 @@ body {
   <button id="save-universe-btn" style="display: none;">저장하기</button>
   <div id="save-feedback">저장 중입니다...</div>
   <button id="clear-universe-btn" style="display: none;">초기화</button>
+  <button id="fit-view-btn">전체 보기</button>
+  <button id="label-toggle-btn">라벨 모두 보기</button>
   <div id="universe-stats"></div>
 </div>
 <div id="guide">
-  마우스 드래그: 회전 | 스크롤: 줌 | 클릭: 노드 선택
+  마우스 드래그: 회전 | 스크롤: 줌 | 클릭: 노드 선택 | 확대하면 라벨 자동 표시
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -221,10 +240,10 @@ window.addEventListener('resize', updateStreamlitFrameHeight);
 
 // Scene 설정
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x0a0a0a, 10, 50);
+scene.fog = new THREE.Fog(0x0a0a0a, 22, 86);
 
-const camera = new THREE.PerspectiveCamera(110, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 18;
+const camera = new THREE.PerspectiveCamera(95, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 32;
 
 const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -652,13 +671,38 @@ window.addEventListener('mouseup', stopDragging);
 // 줌
 renderer.domElement.addEventListener('wheel', (e) => {
   e.preventDefault();
-  camera.position.z += e.deltaY * 0.01;
-  camera.position.z = Math.max(5, Math.min(30, camera.position.z));
+  camera.position.z += e.deltaY * 0.018;
+  camera.position.z = Math.max(7, Math.min(54, camera.position.z));
 });
 
 // 클릭한 노드 추적
 const myUniverse = new Set();
 let isMyUniverseMode = false;
+let selectedLabelIndex = null;
+let focusedLabelIndices = new Set();
+let showAllLabels = false;
+
+function setFocusedLabels(indices) {
+  focusedLabelIndices = new Set(indices.filter(idx => idx !== undefined && idx !== null));
+}
+
+function resetFocusedLabels() {
+  selectedLabelIndex = null;
+  focusedLabelIndices.clear();
+}
+
+function shouldShowLabel(mesh, idx) {
+  if (!mesh.visible) return false;
+  if (showAllLabels) return true;
+  if (idx === selectedLabelIndex || focusedLabelIndices.has(idx)) return true;
+  if (isMyUniverseMode) return myUniverse.has(idx);
+  return mesh.userData.type === 'node' && camera.position.z < 18;
+}
+
+function updateLabelToggleButton() {
+  const btn = document.getElementById('label-toggle-btn');
+  if (btn) btn.textContent = showAllLabels ? '라벨 자동 표시' : '라벨 모두 보기';
+}
 
 function updateMyUniversePanel() {
   const container = document.getElementById('clicked-nodes');
@@ -720,6 +764,17 @@ document.getElementById('view-universe-btn').addEventListener('click', () => {
   toggleMyUniverseMode();
 });
 
+document.getElementById('label-toggle-btn').addEventListener('click', () => {
+  showAllLabels = !showAllLabels;
+  updateLabelToggleButton();
+});
+
+document.getElementById('fit-view-btn').addEventListener('click', () => {
+  camera.position.z = isMyUniverseMode ? 20 : 36;
+  panOffset.x = 0;
+  panOffset.y = 0;
+});
+
 function saveMyUniverseToStreamlit() {
   const selectedNames = [...myUniverse]
     .map(idx => nodes[idx])
@@ -768,6 +823,7 @@ function toggleMyUniverseMode() {
 
 function showMyUniverse() {
   buildMyStar();
+  camera.position.z = Math.min(camera.position.z, 22);
 
   // 1) 선택 노드를 내 별 주위 안쪽 구면에 배치
   arrangeNodesAroundCenter();
@@ -801,6 +857,8 @@ function showMyUniverse() {
       nodeLabels[idx].style.display = 'none';
     }
   });
+  selectedLabelIndex = null;
+  setFocusedLabels([...myUniverse]);
 
   // 5) 기존 연결선은 모두 숨기고 나만의 우주용 선만 그림
   connectionLines.forEach(line => { line.visible = false; });
@@ -818,6 +876,7 @@ function showMyUniverse() {
 
 function exitMyUniverseMode() {
   isMyUniverseMode = false;
+  resetFocusedLabels();
   currentMyConnectedExperts = new Set();
   currentMyExpertParentMap = new Map();
 
@@ -841,6 +900,7 @@ function exitMyUniverseMode() {
 }
 
 function resetHighlight() {
+  resetFocusedLabels();
   nodeMeshes.forEach(m => {
     m.material.color.setHex(m.userData.baseColor);
     m.material.emissive.setHex(m.userData.baseColor);
@@ -895,6 +955,8 @@ function focusDirectConnections(selectedIdx) {
     }
   });
 
+  selectedLabelIndex = selectedIdx;
+  setFocusedLabels([...focused]);
   return [...focused].filter(idx => idx !== selectedIdx);
 }
 
@@ -931,6 +993,7 @@ function getNodeInfoText(selectedIdx) {
 }
 
 function focusMyUniverseSelection(selectedIdx) {
+  const labels = new Set([selectedIdx]);
   nodeMeshes.forEach((mesh, idx) => {
     if (!mesh.visible) return;
     const isSelected = idx === selectedIdx;
@@ -954,9 +1017,15 @@ function focusMyUniverseSelection(selectedIdx) {
     const parentIdx = line.userData ? line.userData.parentIdx : undefined;
     const expertIdx = line.userData ? line.userData.expertIdx : undefined;
     const highlighted = parentIdx === selectedIdx || expertIdx === selectedIdx;
+    if (highlighted) {
+      labels.add(parentIdx);
+      labels.add(expertIdx);
+    }
     line.material.color.setHex(highlighted ? 0xfff2a8 : 0xffd700);
     line.material.opacity = highlighted ? 0.95 : 0.28;
   });
+  selectedLabelIndex = selectedIdx;
+  setFocusedLabels([...labels]);
 }
 
 const mouse = new THREE.Vector2();
@@ -1062,7 +1131,7 @@ function animate() {
   
   // 자동 회전 (마우스 드래그 없을 때)
   if (!isDragging) {
-    rotation.y += 0.0004;
+    rotation.y += 0.0002;
   }
   universeGroup.rotation.x = rotation.x;
   universeGroup.rotation.y = rotation.y;
@@ -1080,9 +1149,7 @@ function animate() {
         return;
       }
 
-      // 내 우주 모드: 강조된 노드만 라벨 표시
-      // 전체 네트워크 모드: 모든 노드 라벨 표시
-      if (isMyUniverseMode && mesh.scale.x <= 1.05) {
+      if (!shouldShowLabel(mesh, idx)) {
         label.style.display = 'none';
         return;
       }
@@ -1091,7 +1158,7 @@ function animate() {
       if (pos.z < 1) {
         label.style.display = 'block';
         label.style.left = pos.x + 'px';
-        label.style.top = (pos.y - 25) + 'px';
+        label.style.top = (pos.y - 22) + 'px';
       } else {
         label.style.display = 'none';
       }
@@ -1129,7 +1196,7 @@ function animate() {
   camera.position.y = panOffset.y;
   camera.lookAt(panOffset.x, panOffset.y, 0);
   
-  stars.rotation.y += 0.0002;
+  stars.rotation.y += 0.0001;
   
   renderer.render(scene, camera);
 }

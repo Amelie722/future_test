@@ -11,6 +11,7 @@ import sqlite3
 import json
 import base64
 import hashlib
+import html as html_lib
 import os
 import shutil
 import math
@@ -122,8 +123,11 @@ if "account"                not in st.session_state: st.session_state.account   
 _requested_page = st.query_params.get("fu_page")
 if isinstance(_requested_page, list):
     _requested_page = _requested_page[0] if _requested_page else None
-if _requested_page == "home":
+_public_query_pages = {"home", "3d", "discovery", "questions", "career", "career_videos", "survey", "contact"}
+if _requested_page in _public_query_pages:
     st.session_state.page = "home"
+    if _requested_page:
+        st.session_state.page = _requested_page
     try:
         del st.query_params["fu_page"]
     except Exception:
@@ -440,6 +444,64 @@ p, li {
     background: rgba(10,16,28,0.35);
 }
 
+.home-carousel {
+    display: flex;
+    gap: 0.9rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 0.25rem 0 0.85rem;
+    margin: 1rem 0 0.25rem;
+    scrollbar-color: rgba(122,174,255,0.55) rgba(20,26,38,0.8);
+}
+.home-carousel-card {
+    scroll-snap-align: start;
+    flex: 0 0 min(430px, 82vw);
+    min-height: 166px;
+    display: block;
+    text-decoration: none !important;
+    border: 1px solid rgba(122,174,255,0.42);
+    border-radius: 8px;
+    padding: 1.05rem 1.15rem;
+    background:
+        linear-gradient(135deg, rgba(74,144,255,0.16), rgba(39,214,162,0.08)),
+        rgba(17,23,35,0.92);
+    box-shadow: 0 16px 34px rgba(0,0,0,0.18);
+    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+.home-carousel-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(39,214,162,0.72);
+    background:
+        linear-gradient(135deg, rgba(74,144,255,0.22), rgba(39,214,162,0.12)),
+        rgba(18,25,38,0.98);
+}
+.home-carousel-kicker {
+    color: var(--accent-2);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.55rem;
+}
+.home-carousel-title {
+    color: var(--text-1);
+    font-size: 1.15rem;
+    font-weight: 850;
+    line-height: 1.35;
+    margin-bottom: 0.45rem;
+}
+.home-carousel-body {
+    color: var(--text-3);
+    font-size: 0.86rem;
+    line-height: 1.58;
+}
+.home-carousel-cta {
+    color: #FFD34F;
+    font-size: 0.8rem;
+    font-weight: 800;
+    margin-top: 0.85rem;
+}
+
 /* ── 히어로 지표 카드 ── */
 .hero-stat-wrap {
     display: flex;
@@ -507,6 +569,95 @@ p, li {
 /* ── 전문가 ── */
 .expert-name { font-size: 1.1rem; font-weight: 700; color: var(--text-1); margin: 0.4rem 0 0.2rem; }
 .expert-tags { font-size: 0.84rem; color: #B8C8EF; line-height: 1.8; }
+.home-expert-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.95rem;
+}
+.home-expert-card {
+    min-height: 150px;
+    border: 1px solid rgba(122,174,255,0.34);
+    border-radius: 8px;
+    background: rgba(74,144,255,0.055);
+    padding: 1rem;
+}
+.home-expert-card:nth-child(2n) {
+    border-color: rgba(39,214,162,0.34);
+    background: rgba(39,214,162,0.045);
+}
+.home-expert-card .expert-name {
+    margin-top: 0;
+}
+.home-expert-desc {
+    color: var(--text-3);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin-top: 0.45rem;
+}
+.home-answer-row {
+    border: 1px solid rgba(122,174,255,0.28);
+    border-radius: 8px;
+    background: rgba(10,16,28,0.32);
+    padding: 0.82rem 0.95rem;
+    margin-top: 0.75rem;
+}
+.home-answer-from {
+    color: var(--text-1);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+.home-answer-q {
+    color: #B8C8EF;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    margin-top: 0.35rem;
+}
+.home-answer-a {
+    color: rgba(180,240,210,0.78);
+    font-size: 0.82rem;
+    line-height: 1.55;
+    margin-top: 0.45rem;
+}
+.discovery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin: 0.9rem 0 1.5rem;
+}
+.discovery-card {
+    min-height: 178px;
+    border: 1px solid rgba(122,174,255,0.34);
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(25,28,39,0.82), rgba(16,22,34,0.92));
+    padding: 1rem;
+}
+.discovery-kind {
+    color: var(--accent-2);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+.discovery-title {
+    color: var(--text-1);
+    font-size: 0.98rem;
+    font-weight: 800;
+    line-height: 1.42;
+}
+.discovery-meta {
+    color: #B8C8EF;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    margin-top: 0.35rem;
+}
+.discovery-body {
+    color: var(--text-3);
+    font-size: 0.82rem;
+    line-height: 1.58;
+    margin-top: 0.55rem;
+}
 
 /* ── CTA 배너 (버튼 포함 일체형) ── */
 .cta-banner {
@@ -908,6 +1059,12 @@ hr { border-color: rgba(110,170,255,0.38) !important; }
     .feature-cards {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
+    .home-expert-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .discovery-grid {
+        grid-template-columns: 1fr !important;
+    }
 
     /* 제목 */
     h1 { font-size: 1.65rem !important; }
@@ -1230,6 +1387,38 @@ def init_accounts():
     _add_col(c, 'question_answers', 'is_new_for_asker', 'INTEGER DEFAULT 1')
     conn.commit()
 
+    # ── expert_stories: 질문이 없어도 분야를 소개하는 전문가 콘텐츠 ─────
+    c.execute("""CREATE TABLE IF NOT EXISTS expert_stories (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        expert_id   INTEGER NOT NULL REFERENCES expert_profiles(id) ON DELETE CASCADE,
+        title       TEXT    NOT NULL,
+        story_type  TEXT    NOT NULL DEFAULT 'field_intro',
+        body        TEXT    NOT NULL,
+        field_hint  TEXT,
+        created_at  TEXT    NOT NULL DEFAULT (datetime('now')))""")
+    conn.commit()
+
+    # ── expert_missions: 학생이 먼저 시도해볼 수 있는 입문 미션 ───────
+    c.execute("""CREATE TABLE IF NOT EXISTS expert_missions (
+        id                INTEGER PRIMARY KEY AUTOINCREMENT,
+        expert_id         INTEGER NOT NULL REFERENCES expert_profiles(id) ON DELETE CASCADE,
+        title             TEXT    NOT NULL,
+        mission_text      TEXT    NOT NULL,
+        difficulty        TEXT    NOT NULL DEFAULT '가볍게',
+        estimated_minutes INTEGER NOT NULL DEFAULT 15,
+        created_at        TEXT    NOT NULL DEFAULT (datetime('now')))""")
+    conn.commit()
+
+    # ── mission_attempts: 학생이 미션을 저장/시도한 기록 ───────────────
+    c.execute("""CREATE TABLE IF NOT EXISTS mission_attempts (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        mission_id INTEGER NOT NULL REFERENCES expert_missions(id) ON DELETE CASCADE,
+        login_id   TEXT    NOT NULL REFERENCES accounts(login_id) ON DELETE CASCADE,
+        status     TEXT    NOT NULL DEFAULT 'saved',
+        created_at TEXT    NOT NULL DEFAULT (datetime('now')),
+        UNIQUE(mission_id, login_id))""")
+    conn.commit()
+
     # ── universe_nodes: 관리자 추가 노드 ────────────────
     c.execute("""CREATE TABLE IF NOT EXISTS universe_nodes (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1505,11 +1694,13 @@ def get_questions_for_expert(expert_id, viewer_login_id=None, viewer_role=None):
     conn = get_conn()
     rows = conn.execute("""
         SELECT q.id, q.from_login_id,
+               ep.login_id AS expert_login_id,
                COALESCE(NULLIF(sp.display_name, ''), NULLIF(ep_asker.display_name, ''), q.from_login_id) AS asker_nickname,
                q.question_text,
                q.is_public, q.created_at,
                qa.answer_text, qa.created_at as answered_at
         FROM questions q
+        JOIN expert_profiles ep ON ep.id = q.to_expert_id
         LEFT JOIN student_profiles sp ON sp.login_id = q.from_login_id
         LEFT JOIN expert_profiles ep_asker ON ep_asker.login_id = q.from_login_id
         LEFT JOIN question_answers qa ON qa.question_id = q.id
@@ -1517,13 +1708,15 @@ def get_questions_for_expert(expert_id, viewer_login_id=None, viewer_role=None):
         ORDER BY q.created_at DESC
     """, (expert_id,)).fetchall()
     conn.close()
-    cols = ['id','from_login_id','asker_nickname','question_text',
+    cols = ['id','from_login_id','expert_login_id','asker_nickname','question_text',
             'is_public','created_at','answer_text','answered_at']
     result = []
     for r in rows:
         d = dict(zip(cols, r))
         if not d['is_public']:
             if viewer_role == 'admin':
+                pass
+            elif viewer_login_id and viewer_login_id == d['expert_login_id']:
                 pass
             elif viewer_login_id and (viewer_login_id == d['from_login_id']):
                 pass
@@ -1666,6 +1859,224 @@ def post_answer(question_id, answer_text, answered_by):
         )
     conn.commit()
     conn.close()
+
+def add_expert_story(expert_id, title, story_type, body, field_hint=""):
+    conn = get_conn()
+    conn.execute(
+        """INSERT INTO expert_stories (expert_id, title, story_type, body, field_hint)
+           VALUES (?,?,?,?,?)""",
+        (expert_id, title, story_type, body, field_hint),
+    )
+    conn.commit()
+    conn.close()
+
+def get_expert_stories(expert_id=None, limit=20):
+    conn = get_conn()
+    if expert_id:
+        rows = conn.execute("""
+            SELECT es.id, es.expert_id, es.title, es.story_type, es.body, es.field_hint,
+                   es.created_at, ep.display_name, ep.current_job, ep.field
+            FROM expert_stories es
+            JOIN expert_profiles ep ON ep.id = es.expert_id
+            WHERE es.expert_id = ?
+            ORDER BY es.created_at DESC, es.id DESC
+            LIMIT ?
+        """, (expert_id, limit)).fetchall()
+    else:
+        rows = conn.execute("""
+            SELECT es.id, es.expert_id, es.title, es.story_type, es.body, es.field_hint,
+                   es.created_at, ep.display_name, ep.current_job, ep.field
+            FROM expert_stories es
+            JOIN expert_profiles ep ON ep.id = es.expert_id
+            WHERE ep.is_approved = 1
+            ORDER BY es.created_at DESC, es.id DESC
+            LIMIT ?
+        """, (limit,)).fetchall()
+    conn.close()
+    cols = ["id", "expert_id", "title", "story_type", "body", "field_hint",
+            "created_at", "expert_name", "current_job", "field"]
+    return [dict(zip(cols, row)) for row in rows]
+
+def add_expert_mission(expert_id, title, mission_text, difficulty, estimated_minutes):
+    conn = get_conn()
+    conn.execute(
+        """INSERT INTO expert_missions
+           (expert_id, title, mission_text, difficulty, estimated_minutes)
+           VALUES (?,?,?,?,?)""",
+        (expert_id, title, mission_text, difficulty, int(estimated_minutes)),
+    )
+    conn.commit()
+    conn.close()
+
+def get_expert_missions(expert_id=None, limit=20):
+    conn = get_conn()
+    if expert_id:
+        rows = conn.execute("""
+            SELECT em.id, em.expert_id, em.title, em.mission_text, em.difficulty,
+                   em.estimated_minutes, em.created_at, ep.display_name, ep.current_job,
+                   ep.field, COUNT(ma.id) AS attempt_count
+            FROM expert_missions em
+            JOIN expert_profiles ep ON ep.id = em.expert_id
+            LEFT JOIN mission_attempts ma ON ma.mission_id = em.id
+            WHERE em.expert_id = ?
+            GROUP BY em.id
+            ORDER BY em.created_at DESC, em.id DESC
+            LIMIT ?
+        """, (expert_id, limit)).fetchall()
+    else:
+        rows = conn.execute("""
+            SELECT em.id, em.expert_id, em.title, em.mission_text, em.difficulty,
+                   em.estimated_minutes, em.created_at, ep.display_name, ep.current_job,
+                   ep.field, COUNT(ma.id) AS attempt_count
+            FROM expert_missions em
+            JOIN expert_profiles ep ON ep.id = em.expert_id
+            LEFT JOIN mission_attempts ma ON ma.mission_id = em.id
+            WHERE ep.is_approved = 1
+            GROUP BY em.id
+            ORDER BY em.created_at DESC, em.id DESC
+            LIMIT ?
+        """, (limit,)).fetchall()
+    conn.close()
+    cols = ["id", "expert_id", "title", "mission_text", "difficulty",
+            "estimated_minutes", "created_at", "expert_name", "current_job",
+            "field", "attempt_count"]
+    return [dict(zip(cols, row)) for row in rows]
+
+def save_mission_attempt(mission_id, login_id):
+    conn = get_conn()
+    conn.execute(
+        """INSERT OR IGNORE INTO mission_attempts (mission_id, login_id, status)
+           VALUES (?, ?, 'saved')""",
+        (mission_id, login_id),
+    )
+    conn.commit()
+    conn.close()
+
+def render_hidden_discovery(account=None, story_limit=3, mission_limit=3, show_more_button=False):
+    st.markdown('<div class="section-title">스토리와 미션</div>', unsafe_allow_html=True)
+    st.caption("질문이 많지 않아도, 전문가가 먼저 열어둔 이야기와 입문 미션을 탐색합니다.")
+
+    stories = get_expert_stories(limit=story_limit)
+    missions = get_expert_missions(limit=mission_limit)
+    story_cards = []
+    mission_cards = []
+
+    for story in stories:
+        body = (story.get("body") or "").strip()
+        if len(body) > 150:
+            body = body[:150] + "..."
+        story_cards.append(
+            '<div class="discovery-card">'
+            '<div class="discovery-kind">Story</div>'
+            f'<div class="discovery-title">{html_lib.escape(story.get("title") or "분야 이야기")}</div>'
+            f'<div class="discovery-meta">{html_lib.escape(story.get("expert_name") or "전문가")} · {html_lib.escape(story.get("field_hint") or story.get("field") or "활동 분야")}</div>'
+            f'<div class="discovery-body">{html_lib.escape(body)}</div>'
+            "</div>"
+        )
+
+    for mission in missions:
+        body = (mission.get("mission_text") or "").strip()
+        if len(body) > 150:
+            body = body[:150] + "..."
+        mission_cards.append(
+            '<div class="discovery-card">'
+            '<div class="discovery-kind">Mission</div>'
+            f'<div class="discovery-title">{html_lib.escape(mission.get("title") or "입문 미션")}</div>'
+            f'<div class="discovery-meta">{html_lib.escape(mission.get("expert_name") or "전문가")} · {html_lib.escape(mission.get("difficulty") or "가볍게")} · {int(mission.get("estimated_minutes") or 15)}분</div>'
+            f'<div class="discovery-body">{html_lib.escape(body)}</div>'
+            "</div>"
+        )
+
+    tab_story, tab_mission = st.tabs(["스토리", "미션"])
+    with tab_story:
+        if story_cards:
+            st.markdown(
+                '<div class="discovery-grid">' + "".join(story_cards) + "</div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("아직 전문가 스토리가 없습니다. 전문가가 등록하면 이곳에 표시됩니다.")
+
+    with tab_mission:
+        if mission_cards:
+            st.markdown(
+                '<div class="discovery-grid">' + "".join(mission_cards) + "</div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("아직 입문 미션이 없습니다. 전문가가 등록하면 이곳에 표시됩니다.")
+
+    if account and account.get("role") == "student" and missions:
+        with st.expander("입문 미션 저장하기"):
+            mission_map = {f"{m['title']} · {m['expert_name']}": m for m in missions}
+            selected_mission_label = st.selectbox(
+                "저장할 미션",
+                list(mission_map.keys()),
+                key=f"discovery_mission_select_{story_limit}_{mission_limit}",
+            )
+            if st.button(
+                "내 미션으로 저장",
+                use_container_width=True,
+                key=f"save_discovery_mission_{story_limit}_{mission_limit}",
+            ):
+                save_mission_attempt(mission_map[selected_mission_label]["id"], account["login_id"])
+                st.success("미션을 저장했습니다. 프로필에서 확인할 수 있습니다.")
+
+    if show_more_button and st.button("스토리와 미션 더 보기", use_container_width=True, key="home_go_discovery"):
+        st.session_state.page = "discovery"
+        st.rerun()
+
+def get_student_saved_missions(login_id):
+    conn = get_conn()
+    rows = conn.execute("""
+        SELECT em.id, em.title, em.mission_text, em.difficulty, em.estimated_minutes,
+               ma.created_at, ep.display_name, ep.current_job, ep.field
+        FROM mission_attempts ma
+        JOIN expert_missions em ON em.id = ma.mission_id
+        JOIN expert_profiles ep ON ep.id = em.expert_id
+        WHERE ma.login_id = ?
+        ORDER BY ma.created_at DESC, ma.id DESC
+    """, (login_id,)).fetchall()
+    conn.close()
+    cols = ["id", "title", "mission_text", "difficulty", "estimated_minutes",
+            "saved_at", "expert_name", "current_job", "field"]
+    return [dict(zip(cols, row)) for row in rows]
+
+def get_expert_impact(expert_id):
+    conn = get_conn()
+    nodes = [r[0] for r in conn.execute(
+        "SELECT node_name FROM expert_nodes WHERE expert_id=?",
+        (expert_id,),
+    ).fetchall()]
+    saved_students = 0
+    if nodes:
+        saved_students = conn.execute(
+            f"""SELECT COUNT(DISTINCT login_id)
+                FROM my_universe
+                WHERE node_name IN ({','.join('?' for _ in nodes)})""",
+            nodes,
+        ).fetchone()[0] or 0
+    row = conn.execute("""
+        SELECT
+            COUNT(DISTINCT q.id) AS question_count,
+            COUNT(DISTINCT qa.id) AS answer_count,
+            COUNT(DISTINCT es.id) AS story_count,
+            COUNT(DISTINCT em.id) AS mission_count,
+            COUNT(DISTINCT ma.id) AS mission_saved_count
+        FROM expert_profiles ep
+        LEFT JOIN questions q ON q.to_expert_id = ep.id
+        LEFT JOIN question_answers qa ON qa.question_id = q.id
+        LEFT JOIN expert_stories es ON es.expert_id = ep.id
+        LEFT JOIN expert_missions em ON em.expert_id = ep.id
+        LEFT JOIN mission_attempts ma ON ma.mission_id = em.id
+        WHERE ep.id = ?
+    """, (expert_id,)).fetchone()
+    conn.close()
+    cols = ["question_count", "answer_count", "story_count", "mission_count", "mission_saved_count"]
+    impact = dict(zip(cols, row or [0, 0, 0, 0, 0]))
+    impact["saved_students"] = saved_students
+    impact["nodes"] = nodes
+    return impact
 
 def update_display_name(account_ref, role, new_name):
     login_id = _login_id_for_ref(account_ref)
@@ -2096,6 +2507,7 @@ SECTIONS = {
     "퓨처유니버스": [
         ("🏠 홈", "home"),
         ("🌌 3D 유니버스",   "3d"),
+        ("📚 스토리와 미션", "discovery"),
         ("💬 전문가 Q&A",    "questions"),
         ("🤖 AI 진로상담", "career"),
         ("🎬 진로 탐색 영상", "career_videos"),
@@ -2123,6 +2535,49 @@ CONTACT_PROFILE = {
     "message": "학생들이 관심사, 전문가, 질문을 연결해 자기만의 진로 지도를 만들 수 있도록 이 플랫폼을 만들고 있습니다.",
     "email": "futureuniverse@example.com",
 }
+
+def render_home_carousel():
+    slides = [
+        {
+            "kicker": "Interest Map",
+            "title": "관심사를 고르면 연결된 전문가가 보입니다",
+            "body": "막연한 흥미를 활동 분야 노드로 저장하고, 그 분야에서 실제로 일하고 활동하는 사람들을 만납니다.",
+            "page": "3d",
+            "cta": "Future Universe 열기",
+        },
+        {
+            "kicker": "Expert Story",
+            "title": "전문가의 실제 하루에서 진로 감각을 얻습니다",
+            "body": "직업명만으로는 알 수 없는 일의 방식, 필요한 태도, 처음 해볼 작은 행동을 스토리와 미션으로 확인합니다.",
+            "page": "discovery",
+            "cta": "스토리와 미션 보기",
+        },
+        {
+            "kicker": "Q&A",
+            "title": "학생의 질문이 전문가의 조언으로 이어집니다",
+            "body": "전공, 준비 방법, 현실적인 어려움까지 직접 묻고 답변을 받아 내 선택을 더 구체적으로 만듭니다.",
+            "page": "questions",
+            "cta": "전문가 Q&A 보기",
+        },
+        {
+            "kicker": "Next Step",
+            "title": "관심과 답변을 모아 다음 행동을 설계합니다",
+            "body": "저장한 분야와 전문가 조언을 바탕으로 지금 해볼 활동, 질문, 탐색 순서를 정리합니다.",
+            "page": "career",
+            "cta": "AI 진로상담 보기",
+        },
+    ]
+    cards = []
+    for slide in slides:
+        cards.append(
+            f'<a class="home-carousel-card" href="?fu_page={slide["page"]}" target="_self">'
+            f'<div class="home-carousel-kicker">{html_lib.escape(slide["kicker"])}</div>'
+            f'<div class="home-carousel-title">{html_lib.escape(slide["title"])}</div>'
+            f'<div class="home-carousel-body">{html_lib.escape(slide["body"])}</div>'
+            f'<div class="home-carousel-cta">{html_lib.escape(slide["cta"])} →</div>'
+            "</a>"
+        )
+    st.markdown('<div class="home-carousel">' + "".join(cards) + "</div>", unsafe_allow_html=True)
 
 def nav_btn(label, key, badge=None):
     t = "primary" if st.session_state.page == key else "secondary"
@@ -2316,7 +2771,12 @@ with st.sidebar:
         if u["role"] == "expert":
             _ep = get_expert_profile(u["account_id"])
             if _ep:
-                _badge_n = get_unanswered_count(_ep["id"])
+                _visible_questions = get_questions_for_expert(
+                    _ep["id"],
+                    viewer_login_id=u["login_id"],
+                    viewer_role=u["role"],
+                )
+                _badge_n = sum(1 for q in _visible_questions if not q.get("answer_text"))
         elif u["role"] == "student":
             _badge_n = get_new_answer_count(u["account_id"])
 
@@ -2399,6 +2859,7 @@ FIELD_COLORS = {
     "의료/바이오": 0x5DCAA5,
     "교육": 0xAFA9EC,
     "환경/에너지": 0x1D9E75,
+    "농업/식품": 0x8FA75A,
     "기타": 0x8FA7D6,
 }
 
@@ -2423,6 +2884,19 @@ NODE_COLORS = {
     "음악": 0x993556,
 }
 
+NODE_CATEGORY_HINTS = {
+    "과학/기술": ["AI", "데이터", "수학", "양자", "로봇", "코딩", "드론", "메이커"],
+    "의료/바이오": ["바이오", "의료", "심리", "응급", "운동처방", "영양"],
+    "환경/에너지": ["기후", "환경", "재생에너지", "해양", "도시농업", "등산", "생태"],
+    "예술/디자인": ["디자인", "사진", "음악", "공연", "웹툰", "패션", "공예"],
+    "미디어/콘텐츠": ["영상", "글쓰기", "저널리즘", "SF", "팟캐스트", "숏폼", "게임방송"],
+    "교육": ["교육", "강연", "독서모임", "토론", "멘토링", "학습코칭"],
+    "사회/경영": ["사회혁신", "창업", "브랜딩", "NGO", "소셜모임", "팬클럽", "지역축제", "플리마켓", "커뮤니티"],
+    "농업/식품": ["요리", "식품", "카페", "정육", "로컬푸드"],
+}
+
+CATEGORY_ORDER = list(FIELD_COLORS.keys())
+
 def _sphere_position(index, total, radius):
     """Deterministic spherical layout for stable 3D maps."""
     if total <= 1:
@@ -2433,6 +2907,45 @@ def _sphere_position(index, total, radius):
         round(math.cos(theta) * math.sin(phi) * radius, 2),
         round(math.sin(theta) * math.sin(phi) * radius, 2),
         round(math.cos(phi) * radius, 2),
+    ]
+
+def _category_for_node(name, node_to_fields=None):
+    if node_to_fields and name in node_to_fields:
+        ranked = sorted(
+            node_to_fields[name].items(),
+            key=lambda item: (-item[1], CATEGORY_ORDER.index(item[0]) if item[0] in CATEGORY_ORDER else 999),
+        )
+        if ranked:
+            return ranked[0][0]
+    for category, hints in NODE_CATEGORY_HINTS.items():
+        if any(hint in name for hint in hints):
+            return category
+    return "기타"
+
+def _category_anchor(category, radius=12.5):
+    order = [cat for cat in CATEGORY_ORDER if cat != "기타"]
+    if category not in order:
+        return [0, 0, 0]
+    idx = order.index(category)
+    total = max(len(order), 1)
+    phi = math.acos(1 - 2 * (idx + 0.5) / total)
+    theta = math.pi * (1 + math.sqrt(5)) * idx
+    return [
+        math.cos(theta) * math.sin(phi) * radius,
+        math.sin(theta) * math.sin(phi) * radius,
+        math.cos(phi) * radius,
+    ]
+
+def _cluster_position(category, index, total, inner_radius, anchor_radius=12.5):
+    anchor = _category_anchor(category, anchor_radius)
+    if total <= 1:
+        local = [0, 0, 0]
+    else:
+        local = _sphere_position(index, total, inner_radius)
+    return [
+        round(anchor[0] + local[0], 2),
+        round(anchor[1] + local[1], 2),
+        round(anchor[2] + local[2], 2),
     ]
 
 def _color_for_name(name, fallback_palette):
@@ -2469,20 +2982,37 @@ def build_3d_universe_data():
 
     expert_nodes = {}
     actual_node_names = []
+    node_to_fields = {}
+    expert_field_by_id = {row[0]: (row[5] or "기타") for row in expert_rows}
     for expert_id, node_name in node_rows:
         if not node_name:
             continue
         expert_nodes.setdefault(expert_id, []).append(node_name)
         actual_node_names.append(node_name)
+        field = expert_field_by_id.get(expert_id, "기타")
+        node_to_fields.setdefault(node_name, {})
+        node_to_fields[node_name][field] = node_to_fields[node_name].get(field, 0) + 1
 
-    topic_names = list(dict.fromkeys(actual_node_names))
+    topic_names = sorted(
+        list(dict.fromkeys(actual_node_names)),
+        key=lambda name: (_category_for_node(name, node_to_fields), name),
+    )
     palette = [0x85B7EB, 0x97C459, 0x5DCAA5, 0xED93B1, 0xEF9F27, 0xAFA9EC, 0x1D9E75]
+    experts_by_category = {}
+    topics_by_category = {}
+    for row in expert_rows:
+        experts_by_category.setdefault(row[5] or "기타", []).append(row[0])
+    for name in topic_names:
+        topics_by_category.setdefault(_category_for_node(name, node_to_fields), []).append(name)
 
     nodes = []
     expert_index_by_id = {}
-    total_experts = max(len(expert_rows), 1)
+    category_expert_offsets = {}
     for idx, row in enumerate(expert_rows):
         expert_id, name, current_job, organization, major, field, description, title = row
+        category = field or "기타"
+        category_idx = category_expert_offsets.get(category, 0)
+        category_expert_offsets[category] = category_idx + 1
         related = expert_nodes.get(expert_id, [])
         headline = " · ".join([p for p in [current_job or title, organization] if p])
         meta = " · ".join([p for p in [major, field] if p])
@@ -2493,23 +3023,26 @@ def build_3d_universe_data():
             "name": name or f"전문가 {expert_id}",
             "type": "expert",
             "desc": desc,
-            "pos": _sphere_position(idx, total_experts, 11),
+            "pos": _cluster_position(category, category_idx, len(experts_by_category.get(category, [])), 8.2, 21.5),
             "color": FIELD_COLORS.get(field, FIELD_COLORS["기타"]),
-            "size": 0.68,
+            "size": 0.46,
         })
 
     node_index_by_name = {}
-    total_topics = max(len(topic_names), 1)
+    category_topic_offsets = {}
     for idx, name in enumerate(topic_names):
+        category = _category_for_node(name, node_to_fields)
+        category_idx = category_topic_offsets.get(category, 0)
+        category_topic_offsets[category] = category_idx + 1
         node_index_by_name[name] = len(nodes)
         degree = actual_node_names.count(name)
         nodes.append({
             "name": name,
             "type": "node",
             "desc": _clean_desc("관심사·활동 노드", f"연결 전문가 {degree}명" if degree else "아직 연결 전문가 없음"),
-            "pos": _sphere_position(idx, total_topics, 5.6),
+            "pos": _cluster_position(category, category_idx, len(topics_by_category.get(category, [])), 4.2, 10.8),
             "color": _color_for_name(name, palette),
-            "size": round(min(0.65, 0.38 + degree * 0.05), 2),
+            "size": round(min(0.52, 0.3 + degree * 0.035), 2),
         })
 
     connections = []
@@ -2546,6 +3079,39 @@ def inject_3d_universe_data(html_content):
         flags=re.S,
     )
     return html_content
+
+def inject_saved_universe_state(html_content, saved_nodes):
+    """Inject saved student nodes into the 3D component."""
+    inject = f"""
+<script>
+(function() {{
+  const _savedNames = {json.dumps(saved_nodes or [], ensure_ascii=False)};
+  function _loadSaved() {{
+    myUniverse.clear();
+    _savedNames.forEach(function(name) {{
+      const idx = nodes.findIndex(function(n) {{ return n.name === name && n.type === 'node'; }});
+      if (idx !== -1) myUniverse.add(idx);
+    }});
+    updateMyUniversePanel();
+
+    if (myUniverse.size > 0) {{
+      isMyUniverseMode = true;
+      const btn = document.getElementById('view-universe-btn');
+      if (btn) btn.textContent = '전체 네트워크 보기 🌐';
+      showMyUniverse();
+    }} else if (typeof exitMyUniverseMode === 'function') {{
+      exitMyUniverseMode();
+    }}
+  }}
+  if (typeof nodes !== 'undefined' && typeof showMyUniverse === 'function') {{
+    _loadSaved();
+  }} else {{
+    window.addEventListener('load', _loadSaved);
+  }}
+}})();
+</script>
+"""
+    return html_content.replace("</body>", inject + "\n</body>")
 
 def embed_3d_with_overlay(html_path, height=620, overlay=True):
     """3D HTML을 임베딩합니다. overlay=True이면 클릭 시 로그인 안내 팝업을 표시합니다."""
@@ -2771,8 +3337,16 @@ def _read_seed_csv(file_name, required_columns):
     return df
 
 
+def _read_seed_csv_optional(file_name, required_columns):
+    seed_dir = SEED_DATA_DIR if os.path.exists(SEED_DATA_DIR) else LEGACY_SEED_DATA_DIR
+    path = os.path.join(seed_dir, file_name)
+    if not os.path.exists(path):
+        return pd.DataFrame(columns=required_columns)
+    return _read_seed_csv(file_name, required_columns)
+
+
 def seed_initial_data():
-    """CSV 파일에서 5개 핵심 테이블용 초기 데이터를 SQLite DB에 추가합니다."""
+    """CSV 파일에서 핵심 mock 데이터를 SQLite DB에 추가합니다."""
     init_accounts()
     init_db()
 
@@ -2811,6 +3385,14 @@ def seed_initial_data():
     expert_nodes_df = _read_seed_csv("expert_nodes.csv", ["login_id", "node_name"])
     student_profiles_df = _read_seed_csv("student_profiles.csv", ["login_id", "nickname", "school_level", "school_name", "grade"])
     my_universe_df = _read_seed_csv("student_univers.csv", ["login_id", "node_name"])
+    questions_df = _read_seed_csv_optional(
+        "questions.csv",
+        ["seed_id", "from_login_id", "to_expert_login_id", "question_title", "question_text", "is_public", "created_at"],
+    )
+    answers_df = _read_seed_csv_optional(
+        "question_answers.csv",
+        ["seed_question_id", "answer_text", "answered_by_login_id", "is_new_for_asker", "created_at"],
+    )
 
     seed_token_bases = {}
     for _, row in accounts_df.iterrows():
@@ -2928,6 +3510,208 @@ def seed_initial_data():
             }
             _insert_or_ignore("my_universe", universe_data)
 
+    seed_question_ids = {}
+    valid_seed_question_keys = set()
+    for _, row in questions_df.iterrows():
+        from_login_id = row["from_login_id"]
+        expert_login_id = row["to_expert_login_id"]
+        if not from_login_id or not expert_login_id or not row["question_text"]:
+            continue
+        if _account_id(from_login_id) is None:
+            continue
+        expert_row = c.execute(
+            "SELECT id FROM expert_profiles WHERE login_id=?",
+            (expert_login_id,),
+        ).fetchone()
+        if not expert_row:
+            continue
+        expert_id = expert_row[0]
+        created_at = row["created_at"] or now
+        is_public = 1 if str(row["is_public"]).lower() in ("1", "true", "y", "yes", "공개") else 0
+        valid_seed_question_keys.add((from_login_id, expert_id, row["question_title"], created_at))
+        existing = c.execute(
+            """SELECT id FROM questions
+               WHERE from_login_id=? AND to_expert_id=? AND question_title=? AND created_at=?""",
+            (from_login_id, expert_id, row["question_title"], created_at),
+        ).fetchone()
+        if existing:
+            qid = existing[0]
+            c.execute(
+                """UPDATE questions
+                   SET question_text=?, is_public=?
+                   WHERE id=?""",
+                (row["question_text"], is_public, qid),
+            )
+        else:
+            c.execute(
+                """INSERT INTO questions
+                   (from_login_id, to_expert_id, question_title, question_text, is_public, created_at)
+                   VALUES (?,?,?,?,?,?)""",
+                (from_login_id, expert_id, row["question_title"], row["question_text"], is_public, created_at),
+            )
+            qid = c.lastrowid
+        if row["seed_id"]:
+            seed_question_ids[row["seed_id"]] = qid
+        tx_exists = c.execute(
+            "SELECT id FROM token_transactions WHERE login_id=? AND reason=? AND related_id=?",
+            (from_login_id, "질문 작성", qid),
+        ).fetchone()
+        if not tx_exists:
+            c.execute(
+                """INSERT INTO token_transactions (login_id, amount, reason, related_id, created_at)
+                   VALUES (?,?,?,?,?)""",
+                (from_login_id, -1000, "질문 작성", qid, created_at),
+            )
+
+    if valid_seed_question_keys:
+        seed_logins = set(accounts_df["login_id"].tolist())
+        seed_expert_ids = [
+            row[0] for row in c.execute("""
+                SELECT id
+                FROM expert_profiles
+                WHERE login_id IN ({})
+            """.format(",".join("?" for _ in seed_logins)), tuple(seed_logins)).fetchall()
+        ] if seed_logins else []
+        if seed_expert_ids:
+            existing_seed_like = c.execute("""
+                SELECT id, from_login_id, to_expert_id, question_title, created_at
+                FROM questions
+                WHERE from_login_id IN ({from_marks})
+                  AND to_expert_id IN ({expert_marks})
+            """.format(
+                from_marks=",".join("?" for _ in seed_logins),
+                expert_marks=",".join("?" for _ in seed_expert_ids),
+            ), tuple(seed_logins) + tuple(seed_expert_ids)).fetchall()
+            stale_ids = [
+                row[0] for row in existing_seed_like
+                if (row[1], row[2], row[3] or "", row[4] or "") not in valid_seed_question_keys
+            ]
+            if stale_ids:
+                marks = ",".join("?" for _ in stale_ids)
+                c.execute(f"DELETE FROM token_transactions WHERE reason IN ('질문 작성', '답변 등록') AND related_id IN ({marks})", tuple(stale_ids))
+                c.execute(f"DELETE FROM question_answers WHERE question_id IN ({marks})", tuple(stale_ids))
+                c.execute(f"DELETE FROM questions WHERE id IN ({marks})", tuple(stale_ids))
+
+    for _, row in answers_df.iterrows():
+        qid = seed_question_ids.get(row["seed_question_id"])
+        answered_by = row["answered_by_login_id"]
+        if not qid or not answered_by or not row["answer_text"]:
+            continue
+        if _account_id(answered_by) is None:
+            continue
+        created_at = row["created_at"] or now
+        is_new = 1 if str(row["is_new_for_asker"]).lower() in ("1", "true", "y", "yes", "미확인") else 0
+        c.execute(
+            """INSERT OR REPLACE INTO question_answers
+               (question_id, answer_text, answered_by, is_new_for_asker, created_at)
+               VALUES (?,?,?,?,?)""",
+            (qid, row["answer_text"], answered_by, is_new, created_at),
+        )
+        tx_exists = c.execute(
+            "SELECT id FROM token_transactions WHERE login_id=? AND reason=? AND related_id=?",
+            (answered_by, "답변 등록", qid),
+        ).fetchone()
+        if not tx_exists:
+            c.execute(
+                """INSERT INTO token_transactions (login_id, amount, reason, related_id, created_at)
+                   VALUES (?,?,?,?,?)""",
+                (answered_by, 1000, "답변 등록", qid, created_at),
+            )
+
+    c.execute("DELETE FROM expert_stories WHERE body LIKE '%이름만 들으면 멀게 느껴질 수 있지만%'")
+    c.execute("DELETE FROM expert_missions WHERE mission_text LIKE '%관련된 사례 하나를 찾아%' OR mission_text LIKE '%1분 발표 제목%' OR mission_text LIKE '%하루 동안 한다면 필요한 도구%'")
+
+    discovery_rows = c.execute("""
+        SELECT ep.id, ep.display_name, ep.current_job, ep.field,
+               COALESCE(GROUP_CONCAT(en.node_name, ', '), '') AS nodes
+        FROM expert_profiles ep
+        LEFT JOIN expert_nodes en ON en.expert_id = ep.id
+        WHERE ep.is_approved = 1
+        GROUP BY ep.id
+        ORDER BY ep.created_at DESC, ep.id DESC
+        LIMIT 36
+    """).fetchall()
+
+    story_blueprints = [
+        (
+            "field_intro",
+            "{node}을 처음 만나는 학생에게",
+            "{job} 일을 하다 보면 멋진 결과물보다 먼저 보이는 것이 있습니다. 바로 '누가 왜 막혀 있는가'예요. {node}은 재능보다 관찰력이 먼저 필요합니다. 오늘 주변에서 불편했던 장면 하나를 적고, 그 장면을 조금 낫게 만들 방법을 떠올려보세요. 그게 이 분야의 아주 작은 출발점입니다.",
+        ),
+        (
+            "misunderstanding",
+            "{node}, 생각보다 덜 화려하고 더 실용적이에요",
+            "{node}을 좋아한다고 해서 매일 신나는 일만 하는 건 아닙니다. 일정 맞추기, 기준 정하기, 사람 설득하기 같은 조용한 일이 훨씬 많아요. 그런데 그 조용한 일을 견디는 사람이 결국 판을 움직입니다. 흥미가 있다면 '내가 계속 챙길 수 있는 일인가'를 먼저 확인해보세요.",
+        ),
+        (
+            "real_day",
+            "{name}의 현장 노트: {node}",
+            "제 하루는 보통 자료를 확인하는 일에서 시작합니다. 누군가에게 보여주기 전에 빠진 조건, 애매한 표현, 예상되는 반응을 먼저 점검해요. {node}에서는 번뜩이는 아이디어보다 다시 고치는 태도가 오래 갑니다. 학생이라면 완성작 하나보다 수정 전후가 보이는 기록을 남겨보면 좋습니다.",
+        ),
+        (
+            "field_intro",
+            "{node}이 맞는 학생의 신호",
+            "친구들이 지나치는 작은 차이를 자꾸 발견한다면 {node}과 꽤 잘 맞을 수 있습니다. 꼭 관련 대회나 자격증부터 시작할 필요는 없어요. 대신 좋아하는 사례 세 개를 모아 공통점을 찾아보세요. '왜 이게 좋지?'를 설명할 수 있게 되는 순간, 취미가 탐구로 바뀝니다.",
+        ),
+        (
+            "misunderstanding",
+            "이 분야는 혼자 잘한다고 끝나지 않습니다: {node}",
+            "{node}은 개인 실력만큼이나 협업 감각이 중요합니다. 부탁을 정확히 하고, 피드백을 덜 아프게 주고, 약속한 결과물을 끝까지 챙기는 사람이 신뢰를 얻어요. 관심 있는 학생이라면 작은 모임에서 역할 하나를 맡아보세요. 생각보다 많은 역량이 거기서 드러납니다.",
+        ),
+        (
+            "real_day",
+            "{node}에서 초보자가 제일 빨리 느는 순간",
+            "초보자는 보통 '잘하는 방법'을 먼저 찾지만, 저는 '망친 이유를 기록하는 습관'이 더 빠르다고 봅니다. {node}도 마찬가지예요. 실패한 시도 하나를 버리지 말고, 조건과 선택과 결과를 나란히 적어두세요. 그 기록이 다음 질문을 훨씬 날카롭게 만들어줍니다.",
+        ),
+    ]
+    mission_blueprints = [
+        ("관찰 메모", "오늘 하루 동안 {node}과 연결될 만한 장면을 3개 찾아보세요. 각 장면마다 '누가', '무엇 때문에', '어떤 도움이 필요했는지'를 한 줄씩 적습니다.", "가볍게", 15),
+        ("비교 실험", "{node} 관련 사례 2개를 골라 하나는 좋은 점, 하나는 아쉬운 점을 표시해보세요. 마지막 줄에는 내가 따라 해보고 싶은 방식을 적습니다.", "가볍게", 20),
+        ("작은 기획서", "친구 3명에게 {node}을 소개한다고 가정하고 제목, 대상, 준비물, 첫 행동을 각각 한 줄로 써보세요.", "보통", 25),
+        ("인터뷰 질문 만들기", "{node}을 하는 사람에게 묻고 싶은 질문 5개를 만드세요. 단, '어떻게 시작했나요?' 대신 실제 하루, 어려움, 돈, 사람 관계 중 하나를 꼭 포함합니다.", "보통", 20),
+        ("역할 체험", "{node} 프로젝트에서 필요한 역할 4개를 상상해보고, 내가 맡고 싶은 역할과 피하고 싶은 역할을 하나씩 고릅니다. 이유도 짧게 적어보세요.", "보통", 30),
+        ("첫 결과물", "{node}을 주제로 카드뉴스 1장, 짧은 공지문, 체크리스트 중 하나를 만들어보세요. 예쁘게보다 '누가 바로 이해하는가'를 기준으로 봅니다.", "도전", 40),
+        ("문제 바꾸기", "{node}에서 사람들이 흔히 불평하는 문제 하나를 고르고, 그 문제를 '해결할 수 있는 질문' 형태로 다시 써보세요.", "가볍게", 15),
+        ("현실 점검", "{node} 활동을 계속하려면 필요한 시간, 돈, 사람, 체력을 각각 1~5점으로 예상해보세요. 가장 부담스러운 항목 하나에 대한 대안을 적습니다.", "보통", 25),
+    ]
+
+    if c.execute("SELECT COUNT(*) FROM expert_stories").fetchone()[0] == 0:
+        for idx, (expert_id, display_name, current_job, field, nodes_text) in enumerate(discovery_rows[:24]):
+            node = (nodes_text.split(", ")[0] if nodes_text else field or current_job or "활동")
+            job = current_job or field or "현장"
+            story_type, title_template, body_template = story_blueprints[idx % len(story_blueprints)]
+            title = title_template.format(node=node, name=display_name, job=job)
+            body = body_template.format(node=node, name=display_name, job=job, field=field or "활동 분야")
+            c.execute(
+                """INSERT INTO expert_stories
+                   (expert_id, title, story_type, body, field_hint, created_at)
+                   VALUES (?,?,?,?,?,?)""",
+                (expert_id, title, story_type, body, node, now),
+            )
+
+    if c.execute("SELECT COUNT(*) FROM expert_missions").fetchone()[0] == 0:
+        for idx, (expert_id, _display_name, current_job, field, nodes_text) in enumerate(discovery_rows[:24]):
+            node = (nodes_text.split(", ")[0] if nodes_text else field or current_job or "활동")
+            title_prefix, mission_template, difficulty, minutes = mission_blueprints[idx % len(mission_blueprints)]
+            c.execute(
+                """INSERT INTO expert_missions
+                   (expert_id, title, mission_text, difficulty, estimated_minutes, created_at)
+                   VALUES (?,?,?,?,?,?)""",
+                (expert_id, f"{title_prefix}: {node}", mission_template.format(node=node), difficulty, minutes, now),
+            )
+
+    for seed_login_id, base_tokens in seed_token_bases.items():
+        runtime_delta = c.execute(
+            """SELECT COALESCE(SUM(amount), 0)
+               FROM token_transactions
+               WHERE login_id=? AND reason <> ?""",
+            (seed_login_id, "가입 보너스"),
+        ).fetchone()[0] or 0
+        c.execute(
+            "UPDATE accounts SET tokens=? WHERE login_id=?",
+            (base_tokens + int(runtime_delta), seed_login_id),
+        )
+
     conn.commit()
     conn.close()
 
@@ -2981,141 +3765,45 @@ if st.session_state.page == "home":
     # 히어로 배너 + CSS 클래스 기반 지표
     st.markdown(f"""
     <div class="hero">
-        <div class="hero-kicker">Career Exploration Platform</div>
-        <div class="hero-title"><span class="hero-accent">Future</span> Universe에서 진로의 연결을 탐색하세요</div>
-        <p class="hero-sub">관심 분야를 3D 유니버스에서 둘러보고, 실제 전문가의 전공·직업·답변을 바탕으로 나만의 커리어 방향을 설계합니다.</p>
+        <div class="hero-kicker">Student to Expert Career Network</div>
+        <div class="hero-title">Future Universe</div>
+        <p class="hero-sub">나라는 우주를 확장시켜보세요.<br>진로는 정답을 고르는 일이 아니라, 서로의 경험과 가능성이 연결되며 나만의 미래 우주를 다시 창조하는 여정입니다.</p>
         <div class="home-flow">
-            <span>관심 노드 발견</span>
-            <span>전문가 연결</span>
-            <span>질문과 답변</span>
-            <span>로드맵 생성</span>
+            <span>관심사 저장</span>
+            <span>전문가 발견</span>
+            <span>실제 조언 받기</span>
+            <span>다음 행동 설계</span>
         </div>
         <div class="hero-stat-wrap">
             <div class="hero-stat">
                 <div class="hero-stat-num">{_expert_stat}</div>
-                <div class="hero-stat-label">등록 전문가</div>
+                <div class="hero-stat-label">연결 가능한 전문가</div>
             </div>
             <div class="hero-stat">
                 <div class="hero-stat-num">{_q_stat}</div>
-                <div class="hero-stat-label">누적 질문</div>
+                <div class="hero-stat-label">학생이 남긴 질문</div>
             </div>
             <div class="hero-stat">
                 <div class="hero-stat-num">{_ans_stat}</div>
-                <div class="hero-stat-label">전문가 답변</div>
+                <div class="hero-stat-label">전문가의 실제 답변</div>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="shortcut-title">바로가기</div>', unsafe_allow_html=True)
-    nav_col1, nav_col2, nav_col3 = st.columns(3)
-    with nav_col1:
-        if st.button("3D 유니버스", use_container_width=True, type="primary", key="home_go_3d"):
-            st.session_state.page = "3d"
-            st.rerun()
-    with nav_col2:
-        if st.button("전문가 Q&A", use_container_width=True, key="home_go_questions"):
-            st.session_state.page = "questions"
-            st.rerun()
-    with nav_col3:
-        if st.button("AI 진로상담", use_container_width=True, key="home_go_career"):
-            st.session_state.page = "career"
-            st.rerun()
+    render_home_carousel()
 
-    # 비로그인 기능 소개 카드 — CSS 클래스 사용
-    if not _home_account:
-        st.markdown("""
-        <div class="feature-cards">
-            <div class="feature-card">
-                <div class="feature-card-icon">3D</div>
-                <div class="feature-card-title">3D 유니버스 탐색</div>
-                <div class="feature-card-desc">로그인 후 관심 주제와 전문가가 연결된 지도를 탐색합니다.</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-card-icon">＋</div>
-                <div class="feature-card-title">나만의 관심 노드</div>
-                <div class="feature-card-desc">마음에 드는 분야를 저장하고 내 진로 후보군으로 모읍니다.</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-card-icon">Q</div>
-                <div class="feature-card-title">전문가 Q&amp;A</div>
-                <div class="feature-card-desc">직업과 전공에 대한 궁금증을 승인된 전문가에게 질문합니다.</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-card-icon">AI</div>
-                <div class="feature-card-title">AI 커리어 설계</div>
-                <div class="feature-card-desc">관심사와 질문 기록을 바탕으로 다음 행동을 구체화합니다.</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    # 3D 탐색기 미리보기
-    st.markdown('<div class="section-title">3D 탐색기 미리보기</div>', unsafe_allow_html=True)
-    st.caption(f'{datetime.now().strftime("%Y-%m-%d")}  ·  3D 탐색기는 로그인 후 이용할 수 있습니다')
-    embed_3d_with_overlay("future_universe_3d (1).html", height=580,
-                          overlay=_home_account is None)
 
-    # 이번 주 전문가 — 실제 DB
-    st.markdown('<div class="section-title">이번 주 전문가</div>', unsafe_allow_html=True)
-    col_expert, col_advice = st.columns(2, gap="large")
 
-    with col_expert:
-        with st.container(border=True):
-            st.markdown("**최근 합류한 전문가**")
-            st.divider()
-            _conn2 = get_conn()
-            _ep_row = _conn2.execute("""
-                SELECT ep.display_name, ep.current_job, ep.organization,
-                       ep.field, ep.description, ep.major
-                FROM expert_profiles ep
-                WHERE ep.is_approved=1
-                ORDER BY ep.created_at DESC LIMIT 1
-            """).fetchone()
-            _conn2.close()
-            if _ep_row:
-                _name, _job, _org, _field, _desc, _major = _ep_row
-                st.markdown(f'<div class="expert-name">{_name}</div>', unsafe_allow_html=True)
-                _tags = " · ".join(filter(None, [_job, _org, _field, _major]))
-                st.markdown(f'<div class="expert-tags">{_tags}</div>', unsafe_allow_html=True)
-                if _desc:
-                    st.caption(_desc[:100] + ("..." if len(_desc or "") > 100 else ""))
-            else:
-                st.caption("아직 등록된 전문가가 없습니다.")
+# ══════════════════════════════════════════
+# PAGE: 스토리와 미션
+# ══════════════════════════════════════════
+elif st.session_state.page == "discovery":
+    st.title("스토리와 미션")
+    st.caption("유명하지 않은 분야도 질문이 생기기 전부터 이야기, 관찰, 작은 미션으로 탐색할 수 있습니다.")
 
-    with col_advice:
-        with st.container(border=True):
-            st.markdown("**전문가 최신 답변**")
-            st.divider()
-            _conn3 = get_conn()
-            _qa_rows = _conn3.execute("""
-                SELECT ep.display_name, q.question_text, qa.answer_text
-                FROM question_answers qa
-                JOIN questions q ON q.id = qa.question_id
-                JOIN expert_profiles ep ON ep.id = q.to_expert_id
-                WHERE q.is_public = 1
-                ORDER BY qa.created_at DESC LIMIT 2
-            """).fetchall()
-            _conn3.close()
-            if _qa_rows:
-                for _en, _qt, _at in _qa_rows:
-                    with st.expander(f"from. {_en}"):
-                        st.markdown(f'<div class="qa-q">Q. {_qt}</div>', unsafe_allow_html=True)
-                        st.markdown(f'<div class="qa-a">A. {_at}</div>', unsafe_allow_html=True)
-            else:
-                st.caption("아직 공개된 답변이 없습니다.")
-
-    # 진로 탐색 영상 (CTA 앞으로 이동)
-    st.markdown('<div class="section-title">진로 탐색 영상</div>', unsafe_allow_html=True)
-    render_career_videos()
-
-    # CTA — 하나의 컨테이너 안에서 설명과 버튼을 함께 제공
-    with st.container(border=True):
-        st.markdown("### 퓨처유니버스 설문조사")
-        st.caption("여러분의 소중한 의견이 퓨처유니버스를 더 좋게 만드는 데 쓰입니다.")
-        if st.button("설문조사 참여하기 →", use_container_width=True, type="primary"):
-            st.session_state.page = "survey"
-            st.session_state.survey_page = 1
-            st.rerun()
-
+    account = st.session_state.get("account")
+    render_hidden_discovery(account, story_limit=12, mission_limit=12)
 
 
 # ══════════════════════════════════════════
@@ -3322,110 +4010,81 @@ elif st.session_state.page == "3d":
 
     saved_nodes = load_my_universe(account) if (account and account["role"] == "student") else []
 
-    # ── 3D 뷰어 (저장 노드 주입) ─────────────────────────────────────
-    html_path = "future_universe_3d (1).html"
-    try:
-        with open(html_path, "r", encoding="utf-8") as f:
-            html_content = f.read()
-        html_content = inject_3d_universe_data(html_content)
+    tab_explore, tab_manage = st.tabs(["3D 탐색", "나만의 우주"])
 
-        # 저장된 노드를 JS로 주입 — DB 상태를 기준으로 3D 선택 상태를 항상 초기화
-        inject = f"""
-<script>
-(function() {{
-  const _savedNames = {json.dumps(saved_nodes, ensure_ascii=False)};
-  function _loadSaved() {{
-    myUniverse.clear();
-    _savedNames.forEach(function(name) {{
-      const idx = nodes.findIndex(function(n) {{ return n.name === name && n.type === 'node'; }});
-      if (idx !== -1) myUniverse.add(idx);
-    }});
-    updateMyUniversePanel();
+    with tab_explore:
+        # ── 3D 뷰어 (저장 노드 주입) ─────────────────────────────────────
+        html_path = "future_universe_3d (1).html"
+        try:
+            with open(html_path, "r", encoding="utf-8") as f:
+                html_content = f.read()
+            html_content = inject_3d_universe_data(html_content)
 
-    if (myUniverse.size > 0) {{
-      isMyUniverseMode = true;
-      const btn = document.getElementById('view-universe-btn');
-      if (btn) btn.textContent = '전체 네트워크 보기 🌐';
-      showMyUniverse();
-    }} else if (typeof exitMyUniverseMode === 'function') {{
-      exitMyUniverseMode();
-    }}
-  }}
-  if (typeof nodes !== 'undefined' && typeof showMyUniverse === 'function') {{
-    _loadSaved();
-  }} else {{
-    window.addEventListener('load', _loadSaved);
-  }}
-}})();
-</script>
-"""
-        html_content = html_content.replace("</body>", inject + "\n</body>")
-
-        component_key = "future_universe_3d_" + hashlib.md5(
-            json.dumps(saved_nodes, ensure_ascii=False).encode("utf-8")
-        ).hexdigest()[:10]
-        component_value = render_3d_universe_component(html_content, key=component_key)
-        if isinstance(component_value, dict) and component_value.get("type") == "save_universe":
-            nonce = component_value.get("nonce")
-            if nonce and st.session_state.get("last_universe_save_nonce") != nonce:
-                requested_nodes = component_value.get("nodes") or []
-                current_3d_nodes, _ = build_3d_universe_data()
-                valid_nodes = {n["name"] for n in current_3d_nodes if n.get("type") == "node"}
-                selected_nodes = [
-                    str(name) for name in requested_nodes
-                    if isinstance(name, str) and name in valid_nodes
-                ]
-                save_my_universe(account, selected_nodes)
-                st.session_state.last_universe_save_nonce = nonce
-                st.session_state.show_universe_save_dialog = len(selected_nodes)
-                st.rerun()
-    except FileNotFoundError:
-        st.error(f"3D HTML 파일을 찾을 수 없습니다: {html_path}")
-    if account and account["role"] == "student":
-        st.divider()
-        st.subheader("✨ 나만의 우주 저장")
-        st.caption("3D 탐색기에서 선택한 구(노드)를 여기서 저장하면 다음에도 불러올 수 있습니다.")
-
-        saved = load_my_universe(account)
-        current_3d_nodes, _ = build_3d_universe_data()
-        node_options = [
-            n["name"] for n in current_3d_nodes
-            if n.get("type") == "node"
-        ]
-        node_options = list(dict.fromkeys(node_options + saved))
-
-        col_sel, col_saved = st.columns([3, 2], gap="large")
-        with col_sel:
-            with st.form("save_universe_form"):
-                selected = st.multiselect(
-                    "저장할 관심 노드(구) 선택",
-                    node_options,
-                    default=saved,
-                    help="3D 뷰어에서 클릭했던 구들을 여기서 저장하세요."
-                )
-                if st.form_submit_button("저장하기", use_container_width=True, type="primary"):
-                    save_my_universe(account, selected)
-                    st.session_state.show_universe_save_dialog = len(selected)
+            component_key = "future_universe_3d_" + hashlib.md5(
+                (html_content + json.dumps(saved_nodes, ensure_ascii=False)).encode("utf-8")
+            ).hexdigest()[:10]
+            html_content = inject_saved_universe_state(html_content, saved_nodes)
+            component_value = render_3d_universe_component(html_content, key=component_key)
+            if isinstance(component_value, dict) and component_value.get("type") == "save_universe":
+                nonce = component_value.get("nonce")
+                if nonce and st.session_state.get("last_universe_save_nonce") != nonce:
+                    requested_nodes = component_value.get("nodes") or []
+                    current_3d_nodes, _ = build_3d_universe_data()
+                    valid_nodes = {n["name"] for n in current_3d_nodes if n.get("type") == "node"}
+                    selected_nodes = [
+                        str(name) for name in requested_nodes
+                        if isinstance(name, str) and name in valid_nodes
+                    ]
+                    save_my_universe(account, selected_nodes)
+                    st.session_state.last_universe_save_nonce = nonce
+                    st.session_state.show_universe_save_dialog = len(selected_nodes)
                     st.rerun()
+        except FileNotFoundError:
+            st.error(f"3D HTML 파일을 찾을 수 없습니다: {html_path}")
 
-        with col_saved:
-            with st.container(border=True):
-                st.markdown("**현재 저장된 나만의 우주**")
-                if saved:
-                    for n in saved:
-                        st.markdown(f"🔵 {n}")
-                else:
-                    st.caption("아직 저장된 노드가 없습니다.")
-    elif account and account["role"] == "expert":
-        # 전문가는 자신의 노드 확인
-        st.divider()
-        ep = get_expert_profile(account["account_id"])
-        if ep:
-            my_nodes = get_expert_nodes(ep["id"])
-            if my_nodes:
-                st.info(f"전문가로 등록된 관련 노드: {', '.join(my_nodes)}")
-    elif not account:
-        st.info("로그인하면 나만의 우주를 저장할 수 있습니다.")
+    with tab_manage:
+        if account and account["role"] == "student":
+            st.subheader("✨ 나만의 우주 저장")
+            st.caption("3D 탐색기에서 선택한 구(노드)를 여기서 저장하면 다음에도 불러올 수 있습니다.")
+
+            saved = load_my_universe(account)
+            current_3d_nodes, _ = build_3d_universe_data()
+            node_options = [
+                n["name"] for n in current_3d_nodes
+                if n.get("type") == "node"
+            ]
+            node_options = list(dict.fromkeys(node_options + saved))
+
+            col_sel, col_saved = st.columns([3, 2], gap="large")
+            with col_sel:
+                with st.form("save_universe_form"):
+                    selected = st.multiselect(
+                        "저장할 관심 노드(구) 선택",
+                        node_options,
+                        default=saved,
+                        help="3D 뷰어에서 클릭했던 구들을 여기서 저장하세요."
+                    )
+                    if st.form_submit_button("저장하기", use_container_width=True, type="primary"):
+                        save_my_universe(account, selected)
+                        st.session_state.show_universe_save_dialog = len(selected)
+                        st.rerun()
+
+            with col_saved:
+                with st.container(border=True):
+                    st.markdown("**현재 저장된 나만의 우주**")
+                    if saved:
+                        for n in saved:
+                            st.markdown(f"🔵 {n}")
+                    else:
+                        st.caption("아직 저장된 노드가 없습니다.")
+        elif account and account["role"] == "expert":
+            ep = get_expert_profile(account["account_id"])
+            if ep:
+                my_nodes = get_expert_nodes(ep["id"])
+                if my_nodes:
+                    st.info(f"전문가로 등록된 관련 노드: {', '.join(my_nodes)}")
+        elif not account:
+            st.info("로그인하면 나만의 우주를 저장할 수 있습니다.")
 
 
 # ══════════════════════════════════════════
@@ -4119,48 +4778,54 @@ elif st.session_state.page == "admin_gap_insights":
     gap_df["부족도"] = gap_df["저장수"] - gap_df["전문가수"]
     gap_df["표시크기"] = gap_df["저장수"].clip(lower=1)
 
-    g1, g2, g3 = st.columns(3)
-    g1.metric("전체 저장 노드", f"{gap_df['저장수'].sum():,}개")
-    g2.metric("전문가 연결 노드", f"{(gap_df['전문가수'] > 0).sum():,}개")
-    g3.metric("전문가 공백 노드", f"{((gap_df['저장수'] > 0) & (gap_df['전문가수'] == 0)).sum():,}개")
+    tab_summary, tab_table, tab_survey = st.tabs(["요약", "노드별 현황", "설문 힌트"])
 
-    c1, c2 = st.columns([2, 1])
-    with c1:
-        fig = px.scatter(
-            gap_df,
-            x="전문가수",
-            y="저장수",
-            size="표시크기",
-            color="부족도",
-            hover_name="관심노드",
-            color_continuous_scale="RdYlGn_r",
-        )
-        fig.update_layout(xaxis_title="연결된 전문가 수", yaxis_title="학생 저장 수")
-        st.plotly_chart(fig, use_container_width=True)
-    with c2:
-        st.markdown("**우선 섭외 후보**")
-        priority = gap_df.sort_values(["부족도", "저장수"], ascending=[False, False]).head(8)
-        if priority["저장수"].sum() == 0:
-            st.caption("아직 관심 저장 데이터가 부족합니다.")
-        else:
-            for _, row in priority.iterrows():
-                st.write(f"- **{row['관심노드']}**: 저장 {row['저장수']} / 전문가 {row['전문가수']}")
+    with tab_summary:
+        g1, g2, g3 = st.columns(3)
+        g1.metric("전체 저장 노드", f"{gap_df['저장수'].sum():,}개")
+        g2.metric("전문가 연결 노드", f"{(gap_df['전문가수'] > 0).sum():,}개")
+        g3.metric("전문가 공백 노드", f"{((gap_df['저장수'] > 0) & (gap_df['전문가수'] == 0)).sum():,}개")
 
-    st.markdown("**노드별 섭외 현황**")
-    st.dataframe(
-        gap_df.sort_values(["부족도", "저장수"], ascending=[False, False]),
-        use_container_width=True,
-        hide_index=True,
-    )
+        c1, c2 = st.columns([2, 1])
+        with c1:
+            fig = px.scatter(
+                gap_df,
+                x="전문가수",
+                y="저장수",
+                size="표시크기",
+                color="부족도",
+                hover_name="관심노드",
+                color_continuous_scale="RdYlGn_r",
+            )
+            fig.update_layout(xaxis_title="연결된 전문가 수", yaxis_title="학생 저장 수")
+            st.plotly_chart(fig, use_container_width=True)
+        with c2:
+            st.markdown("**우선 섭외 후보**")
+            priority = gap_df.sort_values(["부족도", "저장수"], ascending=[False, False]).head(8)
+            if priority["저장수"].sum() == 0:
+                st.caption("아직 관심 저장 데이터가 부족합니다.")
+            else:
+                for _, row in priority.iterrows():
+                    st.write(f"- **{row['관심노드']}**: 저장 {row['저장수']} / 전문가 {row['전문가수']}")
 
-    if not survey_hint_df.empty:
-        st.divider()
-        st.markdown("**최근 설문 응답 힌트**")
+    with tab_table:
+        st.markdown("**노드별 섭외 현황**")
         st.dataframe(
-            survey_hint_df.head(10)[["respondent_type", "question_text", "response_value"]],
+            gap_df.sort_values(["부족도", "저장수"], ascending=[False, False]),
             use_container_width=True,
             hide_index=True,
         )
+
+    with tab_survey:
+        st.markdown("**최근 설문 응답 힌트**")
+        if survey_hint_df.empty:
+            st.caption("아직 설문 응답 힌트가 없습니다.")
+        else:
+            st.dataframe(
+                survey_hint_df.head(10)[["respondent_type", "question_text", "response_value"]],
+                use_container_width=True,
+                hide_index=True,
+            )
 
 
 # ══════════════════════════════════════════
@@ -4498,88 +5163,209 @@ elif st.session_state.page == "profile":
         else:
             st.warning("승인 대기 중 — 관리자 검토 후 유니버스에 표시됩니다.")
 
-        st.divider()
+        tab_basic, tab_nodes, tab_stories, tab_missions, tab_impact, tab_questions = st.tabs([
+            "기본 정보", "활동 분야", "스토리", "미션", "영향력", "받은 질문"
+        ])
 
         # ── 기본 정보 ──────────────────────────────────────
-        st.subheader("기본 정보")
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown(f"**닉네임** : {ep['display_name']}")
-            st.markdown(f"**직함** : {ep['title'] or '—'}")
-            st.markdown(f"**소속** : {ep['organization'] or '—'}")
-        with c2:
-            st.markdown(f"**전공/학과** : {ep.get('major') or '—'}")
-            st.markdown(f"**대분류 분야** : {ep['field'] or '—'}")
-            st.markdown(f"**연락처** : {ep['contact_email'] or '—'}")
-        if ep["description"]:
-            st.markdown(f"**소개** : {ep['description']}")
+        with tab_basic:
+            st.subheader("기본 정보")
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown(f"**닉네임** : {ep['display_name']}")
+                st.markdown(f"**직함** : {ep['title'] or '—'}")
+                st.markdown(f"**소속** : {ep['organization'] or '—'}")
+            with c2:
+                st.markdown(f"**전공/학과** : {ep.get('major') or '—'}")
+                st.markdown(f"**대분류 분야** : {ep['field'] or '—'}")
+                st.markdown(f"**연락처** : {ep['contact_email'] or '—'}")
+            if ep["description"]:
+                st.markdown(f"**소개** : {ep['description']}")
 
-        with st.expander("닉네임 변경"):
-            with st.form("expert_nickname_edit"):
-                new_nick = st.text_input("새 닉네임", value=ep["display_name"], max_chars=10,
-                                         help="한글과 숫자만, 띄어쓰기 없이 최대 10자")
-                if st.form_submit_button("저장", type="primary", use_container_width=True):
-                    new_nick = new_nick.strip()
-                    if not re.fullmatch(r"[가-힣0-9]{1,10}", new_nick):
-                        st.error("한글과 숫자만, 띄어쓰기 없이 최대 10자입니다.")
-                    else:
-                        update_display_name(account["account_id"], "expert", new_nick)
-                        st.session_state.account["display_name"] = new_nick
-                        st.success("닉네임이 변경되었습니다.")
-                        st.rerun()
-
-        st.divider()
+            with st.expander("닉네임 변경"):
+                with st.form("expert_nickname_edit"):
+                    new_nick = st.text_input("새 닉네임", value=ep["display_name"], max_chars=10,
+                                             help="한글과 숫자만, 띄어쓰기 없이 최대 10자")
+                    if st.form_submit_button("저장", type="primary", use_container_width=True):
+                        new_nick = new_nick.strip()
+                        if not re.fullmatch(r"[가-힣0-9]{1,10}", new_nick):
+                            st.error("한글과 숫자만, 띄어쓰기 없이 최대 10자입니다.")
+                        else:
+                            update_display_name(account["account_id"], "expert", new_nick)
+                            st.session_state.account["display_name"] = new_nick
+                            st.success("닉네임이 변경되었습니다.")
+                            st.rerun()
 
         # ── 활동 분야 (수정 가능) ─────────────────────
-        st.subheader("활동 분야")
-        current_nodes = get_expert_nodes(ep["id"])
+        with tab_nodes:
+            st.subheader("활동 분야")
+            current_nodes = get_expert_nodes(ep["id"])
 
-        st.caption(f"현재 활동 분야 ({len(current_nodes)}개): " +
-                   (", ".join(f"**{n}**" for n in current_nodes) if current_nodes else "없음"))
-        st.info("활동 분야를 수정하면 관리자 재승인이 필요합니다. 활동 분야는 가입 후 이메일을 통해 인증서류를 요청합니다.")
+            st.caption(f"현재 활동 분야 ({len(current_nodes)}개): " +
+                       (", ".join(f"**{n}**" for n in current_nodes) if current_nodes else "없음"))
+            st.info("활동 분야를 수정하면 관리자 재승인이 필요합니다. 활동 분야는 가입 후 이메일을 통해 인증서류를 요청합니다.")
 
-        with st.form("expert_node_edit"):
-            expert_node_options = list(dict.fromkeys(get_all_universe_nodes() + current_nodes))
-            selected_nodes = st.multiselect(
-                "활동 분야 선택",
-                expert_node_options,
-                default=current_nodes,
-                help="직업명이 아닌 관심사·전문 주제를 선택하세요."
+            with st.form("expert_node_edit"):
+                expert_node_options = list(dict.fromkeys(get_all_universe_nodes() + current_nodes))
+                selected_nodes = st.multiselect(
+                    "활동 분야 선택",
+                    expert_node_options,
+                    default=current_nodes,
+                    help="직업명이 아닌 관심사·전문 주제를 선택하세요."
+                )
+                if st.form_submit_button("활동 분야 수정 저장", type="primary", use_container_width=True):
+                    if not selected_nodes:
+                        st.error("최소 1개 이상 선택해야 합니다.")
+                    else:
+                        update_expert_nodes(ep["id"], selected_nodes)
+                        st.success("저장 완료! 관리자 승인 후 유니버스에 반영됩니다.")
+                        st.rerun()
+
+            st.divider()
+            st.subheader("활동 분야 추가 요청")
+            st.caption("목록에 없는 분야를 요청하면 관리자 승인 후 내 활동 분야에 추가됩니다.")
+
+            pending_requests = [r for r in get_node_requests() if r['expert_profile_id'] == ep['id'] and r['status'] == 'pending']
+            if pending_requests:
+                st.info("대기 중인 요청: " + ", ".join(f"**{r['node_name']}**" for r in pending_requests))
+
+            with st.form("node_request_form"):
+                requested_node = st.text_input(
+                    "추가할 분야 이름",
+                    placeholder="예: 데이터저널리즘, 과학일러스트, 양자암호학"
+                )
+                if st.form_submit_button("추가 요청 보내기", use_container_width=True):
+                    node_val = requested_node.strip()
+                    if not node_val:
+                        st.error("분야 이름을 입력해 주세요.")
+                    elif node_val in current_nodes:
+                        st.warning("이미 등록된 활동 분야입니다.")
+                    elif request_node(ep["id"], node_val):
+                        st.success(f"'{node_val}' 추가 요청이 전송되었습니다. 관리자 승인 후 반영됩니다.")
+                        st.rerun()
+                    else:
+                        st.warning("이미 동일한 요청이 대기 중입니다.")
+
+        with tab_stories:
+            st.subheader("분야 스토리")
+            st.caption("질문이 없어도 학생이 분야를 발견할 수 있도록 짧은 이야기를 남깁니다.")
+            with st.form("expert_story_form"):
+                story_title = st.text_input("제목", placeholder="예: 팬클럽 운영은 덕질이 아니라 프로젝트 관리입니다")
+                story_type = st.selectbox("스토리 유형", ["field_intro", "misunderstanding", "real_day"], format_func={
+                    "field_intro": "처음 듣는 학생에게",
+                    "misunderstanding": "오해 바로잡기",
+                    "real_day": "실제 하루"
+                }.get)
+                story_hint = st.text_input("연결 분야", placeholder="예: 아이돌팬클럽, 소셜모임운영")
+                story_body = st.text_area(
+                    "내용",
+                    placeholder="이 분야가 무엇을 다루는지, 어떤 학생에게 맞는지, 먼저 해볼 작은 행동은 무엇인지 적어주세요.",
+                    height=160,
+                )
+                if st.form_submit_button("스토리 등록", type="primary", use_container_width=True):
+                    if not story_title.strip() or not story_body.strip():
+                        st.error("제목과 내용을 입력해 주세요.")
+                    else:
+                        add_expert_story(ep["id"], story_title.strip(), story_type, story_body.strip(), story_hint.strip())
+                        st.success("스토리가 등록되었습니다.")
+                        st.rerun()
+
+            st.divider()
+            stories = get_expert_stories(ep["id"])
+            if not stories:
+                st.caption("아직 등록한 스토리가 없습니다.")
+            for story in stories:
+                with st.container(border=True):
+                    st.markdown(f"**{story['title']}**")
+                    st.caption(f"{story['story_type']} · {story['field_hint'] or story['field'] or '연결 분야 미입력'} · {story['created_at'][:10]}")
+                    st.write(story["body"])
+
+        with tab_missions:
+            st.subheader("입문 미션")
+            st.caption("학생이 무엇을 물어봐야 할지 모를 때 먼저 해볼 수 있는 작은 과제를 만듭니다.")
+            with st.form("expert_mission_form"):
+                mission_title = st.text_input("미션 제목", placeholder="예: 플리마켓 진열 문구 3개 만들기")
+                mission_text = st.text_area(
+                    "미션 내용",
+                    placeholder="학생이 15~30분 안에 해볼 수 있는 행동을 구체적으로 적어주세요.",
+                    height=140,
+                )
+                m_col1, m_col2 = st.columns(2)
+                with m_col1:
+                    mission_difficulty = st.selectbox("난이도", ["가볍게", "보통", "도전"])
+                with m_col2:
+                    estimated_minutes = st.number_input("예상 시간(분)", min_value=5, max_value=120, value=20, step=5)
+                if st.form_submit_button("미션 등록", type="primary", use_container_width=True):
+                    if not mission_title.strip() or not mission_text.strip():
+                        st.error("제목과 미션 내용을 입력해 주세요.")
+                    else:
+                        add_expert_mission(
+                            ep["id"],
+                            mission_title.strip(),
+                            mission_text.strip(),
+                            mission_difficulty,
+                            estimated_minutes,
+                        )
+                        st.success("입문 미션이 등록되었습니다.")
+                        st.rerun()
+
+            st.divider()
+            missions = get_expert_missions(ep["id"])
+            if not missions:
+                st.caption("아직 등록한 미션이 없습니다.")
+            for mission in missions:
+                with st.container(border=True):
+                    st.markdown(f"**{mission['title']}**")
+                    st.caption(f"{mission['difficulty']} · {mission['estimated_minutes']}분 · 저장 {mission['attempt_count']}명 · {mission['created_at'][:10]}")
+                    st.write(mission["mission_text"])
+
+        with tab_impact:
+            st.subheader("영향력 보드")
+            st.caption("질문 수가 적은 분야도 저장, 스토리, 미션 반응으로 활동 흔적을 확인합니다.")
+            impact = get_expert_impact(ep["id"])
+            i1, i2, i3 = st.columns(3)
+            i1.metric("내 분야 저장 학생", f"{impact['saved_students']:,}명")
+            i2.metric("받은 질문", f"{impact['question_count']:,}개")
+            i3.metric("답변", f"{impact['answer_count']:,}개")
+            i4, i5, i6 = st.columns(3)
+            i4.metric("스토리", f"{impact['story_count']:,}개")
+            i5.metric("입문 미션", f"{impact['mission_count']:,}개")
+            i6.metric("미션 저장", f"{impact['mission_saved_count']:,}회")
+            if impact["saved_students"] and not impact["question_count"]:
+                st.info("질문은 아직 적지만, 학생들이 이 분야를 저장하고 있습니다. 스토리나 미션으로 먼저 말문을 열어보세요.")
+            elif impact["mission_saved_count"]:
+                st.success("학생들이 미션을 저장하고 있습니다. 다음에는 결과물을 올릴 수 있는 피드백 흐름을 붙이면 좋아요.")
+            else:
+                st.caption("스토리와 입문 미션을 올리면 질문이 없어도 활동 지표가 쌓입니다.")
+
+        with tab_questions:
+            my_questions = get_questions_for_expert(
+                ep["id"],
+                viewer_login_id=account["login_id"],
+                viewer_role=account["role"]
             )
-            if st.form_submit_button("활동 분야 수정 저장", type="primary", use_container_width=True):
-                if not selected_nodes:
-                    st.error("최소 1개 이상 선택해야 합니다.")
-                else:
-                    update_expert_nodes(ep["id"], selected_nodes)
-                    st.success("저장 완료! 관리자 승인 후 유니버스에 반영됩니다.")
-                    st.rerun()
-
-        st.divider()
-
-        # ── 활동 분야 추가 요청 ───────────────────────
-        st.subheader("활동 분야 추가 요청")
-        st.caption("목록에 없는 분야를 요청하면 관리자 승인 후 내 활동 분야에 추가됩니다.")
-
-        pending_requests = [r for r in get_node_requests() if r['expert_profile_id'] == ep['id'] and r['status'] == 'pending']
-        if pending_requests:
-            st.info("대기 중인 요청: " + ", ".join(f"**{r['node_name']}**" for r in pending_requests))
-
-        with st.form("node_request_form"):
-            requested_node = st.text_input(
-                "추가할 분야 이름",
-                placeholder="예: 데이터저널리즘, 과학일러스트, 양자암호학"
-            )
-            if st.form_submit_button("추가 요청 보내기", use_container_width=True):
-                node_val = requested_node.strip()
-                if not node_val:
-                    st.error("분야 이름을 입력해 주세요.")
-                elif node_val in current_nodes:
-                    st.warning("이미 등록된 활동 분야입니다.")
-                elif request_node(ep["id"], node_val):
-                    st.success(f"'{node_val}' 추가 요청이 전송되었습니다. 관리자 승인 후 반영됩니다.")
-                    st.rerun()
-                else:
-                    st.warning("이미 동일한 요청이 대기 중입니다.")
+            unanswered_questions = [q for q in my_questions if not q["answer_text"]]
+            st.subheader(f"받은 질문 {len(my_questions)}개")
+            st.caption(f"답변 대기 {len(unanswered_questions)}개 · 답변 완료 {len(my_questions) - len(unanswered_questions)}개")
+            if not my_questions:
+                st.caption("아직 받은 질문이 없습니다.")
+            for q in my_questions:
+                with st.container(border=True):
+                    badge = "🔒 비공개" if not q["is_public"] else "🌐 공개"
+                    st.markdown(f"{badge} · **{q['asker_nickname']}** · {q['created_at'][:10]}")
+                    st.markdown(f"> {q['question_text']}")
+                    if q["answer_text"]:
+                        st.success(f"**답변:** {q['answer_text']}")
+                    else:
+                        with st.form(f"answer_form_{q['id']}"):
+                            ans = st.text_area("답변 작성", placeholder="답변을 입력하세요.", label_visibility="collapsed")
+                            if st.form_submit_button("답변 등록", type="primary"):
+                                if ans.strip():
+                                    post_answer(q["id"], ans.strip(), account["account_id"])
+                                    st.success("답변이 등록되었습니다.")
+                                    st.rerun()
+                                else:
+                                    st.error("답변 내용을 입력하세요.")
 
     # ── 학생 프로필 ─────────────────────────────────
     elif role == "student":
@@ -4590,60 +5376,59 @@ elif st.session_state.page == "profile":
 
         up = get_student_profile(account["account_id"])
 
-        st.divider()
-        st.subheader("기본 정보")
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown(f"**닉네임** : {up.get('display_name') or account.get('display_name') or '—'}")
-            st.markdown(f"**로그인 ID** : `{account['login_id']}`")
-        with c2:
-            st.markdown(f"**학교급** : {up.get('school_level') or '—'}")
-            st.markdown(f"**학교** : {up.get('school_name') or '—'}")
-            st.markdown(f"**학년** : {up.get('grade') or '—'}")
+        tab_basic, tab_universe, tab_missions, tab_questions = st.tabs(["기본 정보", "나만의 우주", "저장한 미션", "내 질문"])
 
-        with st.expander("닉네임 변경"):
-            with st.form("student_nickname_edit"):
-                cur_nick = up.get("display_name") or account.get("display_name") or ""
-                new_nick = st.text_input("새 닉네임", value=cur_nick, max_chars=10,
-                                         help="한글과 숫자만, 띄어쓰기 없이 최대 10자")
-                if st.form_submit_button("저장", type="primary", use_container_width=True):
-                    new_nick = new_nick.strip()
-                    if not re.fullmatch(r"[가-힣0-9]{1,10}", new_nick):
-                        st.error("한글과 숫자만, 띄어쓰기 없이 최대 10자입니다.")
-                    else:
-                        update_display_name(account["account_id"], "student", new_nick)
-                        st.session_state.account["display_name"] = new_nick
-                        st.success("닉네임이 변경되었습니다.")
-                        st.rerun()
+        with tab_basic:
+            st.subheader("기본 정보")
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown(f"**닉네임** : {up.get('display_name') or account.get('display_name') or '—'}")
+                st.markdown(f"**로그인 ID** : `{account['login_id']}`")
+            with c2:
+                st.markdown(f"**학교급** : {up.get('school_level') or '—'}")
+                st.markdown(f"**학교** : {up.get('school_name') or '—'}")
+                st.markdown(f"**학년** : {up.get('grade') or '—'}")
 
-        st.divider()
+            with st.expander("닉네임 변경"):
+                with st.form("student_nickname_edit"):
+                    cur_nick = up.get("display_name") or account.get("display_name") or ""
+                    new_nick = st.text_input("새 닉네임", value=cur_nick, max_chars=10,
+                                             help="한글과 숫자만, 띄어쓰기 없이 최대 10자")
+                    if st.form_submit_button("저장", type="primary", use_container_width=True):
+                        new_nick = new_nick.strip()
+                        if not re.fullmatch(r"[가-힣0-9]{1,10}", new_nick):
+                            st.error("한글과 숫자만, 띄어쓰기 없이 최대 10자입니다.")
+                        else:
+                            update_display_name(account["account_id"], "student", new_nick)
+                            st.session_state.account["display_name"] = new_nick
+                            st.success("닉네임이 변경되었습니다.")
+                            st.rerun()
 
         # ── 마이유니버스 ────────────────────────────────────
-        st.subheader("✨ 나만의 우주")
-        saved_nodes = load_my_universe(account)
+        with tab_universe:
+            st.subheader("✨ 나만의 우주")
+            saved_nodes = load_my_universe(account)
 
-        if not saved_nodes:
-            st.caption("아직 선택한 노드가 없습니다. 3D 탐색기에서 관심 노드를 저장해보세요.")
-        else:
-            st.caption(f"저장된 관심 노드 {len(saved_nodes)}개")
+            if not saved_nodes:
+                st.caption("아직 선택한 노드가 없습니다. 3D 탐색기에서 관심 노드를 저장해보세요.")
+            else:
+                st.caption(f"저장된 관심 노드 {len(saved_nodes)}개")
 
-            # 노드 카드 그리드
-            cols = st.columns(3)
-            for i, node in enumerate(saved_nodes):
-                with cols[i % 3]:
-                    st.markdown(
-                        f"""<div style='background:rgba(74,144,255,0.1);
-                            border:1px solid rgba(150,190,255,0.42);
-                            border-radius:8px;padding:10px 14px;
-                            margin-bottom:8px;text-align:center;
-                            color:#C8DCFF;font-weight:600;'>
-                            🔵 {node}</div>""",
-                        unsafe_allow_html=True
-                    )
+                cols = st.columns(3)
+                for i, node in enumerate(saved_nodes):
+                    with cols[i % 3]:
+                        st.markdown(
+                            f"""<div style='background:rgba(74,144,255,0.1);
+                                border:1px solid rgba(150,190,255,0.42);
+                                border-radius:8px;padding:10px 14px;
+                                margin-bottom:8px;text-align:center;
+                                color:#C8DCFF;font-weight:600;'>
+                                🔵 {node}</div>""",
+                            unsafe_allow_html=True
+                        )
 
-            st.divider()
+                st.divider()
 
-            # 수정 폼
             with st.form("student_universe_edit"):
                 universe_edit_options = list(dict.fromkeys(get_all_universe_nodes() + saved_nodes))
                 updated = st.multiselect(
@@ -4656,62 +5441,47 @@ elif st.session_state.page == "profile":
                     st.success("저장되었습니다.")
                     st.rerun()
 
-        # ── 내가 남긴 질문 & 답변 ──────────────────────────
-        st.divider()
-        st.subheader("내 질문")
-        conn = get_conn()
-        my_qs = conn.execute("""
-            SELECT q.id, ep.display_name, q.question_text, q.is_public,
-                   q.created_at, qa.answer_text, qa.created_at as answered_at
-            FROM questions q
-            JOIN expert_profiles ep ON ep.id = q.to_expert_id
-            LEFT JOIN question_answers qa ON qa.question_id = q.id
-            WHERE q.from_login_id = ?
-            ORDER BY q.created_at DESC
-        """, (account["login_id"],)).fetchall()
-        conn.close()
-
-        if not my_qs:
-            st.caption("아직 남긴 질문이 없습니다.")
-        else:
-            for qid, expert_name, q_text, is_pub, created, ans_text, ans_at in my_qs:
+        with tab_missions:
+            st.subheader("저장한 입문 미션")
+            saved_missions = get_student_saved_missions(account["login_id"])
+            if not saved_missions:
+                st.caption("아직 저장한 미션이 없습니다. 스토리와 미션 메뉴에서 입문 미션을 저장해보세요.")
+            for mission in saved_missions:
                 with st.container(border=True):
-                    pub_badge = "🌐 공개" if is_pub else "🔒 비공개"
-                    st.markdown(f"{pub_badge} · **{expert_name}** · {created[:10]}")
-                    st.markdown(f"> {q_text}")
-                    if ans_text:
-                        st.success(f"**답변 ({ans_at[:10]}):** {ans_text}")
-                    else:
-                        st.caption("아직 답변이 없습니다.")
+                    st.markdown(f"**{mission['title']}**")
+                    st.caption(
+                        f"{mission['expert_name']} · {mission['current_job'] or mission['field'] or '전문가'} · "
+                        f"{mission['difficulty']} · {mission['estimated_minutes']}분 · 저장일 {mission['saved_at'][:10]}"
+                    )
+                    st.write(mission["mission_text"])
 
-    # ── 전문가: 받은 질문 목록도 표시 ────────────────────
-    if role == "expert" and ep:
-        st.divider()
-        st.subheader("받은 질문")
-        my_questions = get_questions_for_expert(
-            ep["id"],
-            viewer_login_id=account["login_id"],
-            viewer_role=account["role"]
-        )
-        if not my_questions:
-            st.caption("아직 받은 질문이 없습니다.")
-        for q in my_questions:
-            with st.container(border=True):
-                badge = "🔒 비공개" if not q["is_public"] else "🌐 공개"
-                st.markdown(f"{badge} · **{q['asker_nickname']}** · {q['created_at'][:10]}")
-                st.markdown(f"> {q['question_text']}")
-                if q["answer_text"]:
-                    st.success(f"**답변:** {q['answer_text']}")
-                else:
-                    with st.form(f"answer_form_{q['id']}"):
-                        ans = st.text_area("답변 작성", placeholder="답변을 입력하세요.", label_visibility="collapsed")
-                        if st.form_submit_button("답변 등록", type="primary"):
-                            if ans.strip():
-                                post_answer(q["id"], ans.strip(), account["account_id"])
-                                st.success("답변이 등록되었습니다.")
-                                st.rerun()
-                            else:
-                                st.error("답변 내용을 입력하세요.")
+        # ── 내가 남긴 질문 & 답변 ──────────────────────────
+        with tab_questions:
+            st.subheader("내 질문")
+            conn = get_conn()
+            my_qs = conn.execute("""
+                SELECT q.id, ep.display_name, q.question_text, q.is_public,
+                       q.created_at, qa.answer_text, qa.created_at as answered_at
+                FROM questions q
+                JOIN expert_profiles ep ON ep.id = q.to_expert_id
+                LEFT JOIN question_answers qa ON qa.question_id = q.id
+                WHERE q.from_login_id = ?
+                ORDER BY q.created_at DESC
+            """, (account["login_id"],)).fetchall()
+            conn.close()
+
+            if not my_qs:
+                st.caption("아직 남긴 질문이 없습니다.")
+            else:
+                for qid, expert_name, q_text, is_pub, created, ans_text, ans_at in my_qs:
+                    with st.container(border=True):
+                        pub_badge = "🌐 공개" if is_pub else "🔒 비공개"
+                        st.markdown(f"{pub_badge} · **{expert_name}** · {created[:10]}")
+                        st.markdown(f"> {q_text}")
+                        if ans_text:
+                            st.success(f"**답변 ({ans_at[:10]}):** {ans_text}")
+                        else:
+                            st.caption("아직 답변이 없습니다.")
 
     # ── 관리자 ────────────────────────────────────────────
     elif role == "admin":

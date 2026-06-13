@@ -32,6 +32,13 @@
 - 저장된 관심 노드를 기반으로 AI 진로상담·전문가 추천에 자동 반영
 - 학생 로그인 간 상태 동기화 (DB + CSV 시드 파일 동시 갱신)
 
+### 스토리와 미션
+- 질문이 아직 많지 않은 분야도 전문가의 실제 이야기와 입문 미션으로 먼저 탐색
+- **스토리**: 직업명만으로 알기 어려운 실제 하루, 오해, 일의 방식 등을 카드로 제공
+- **미션**: 학생이 5~120분 안에 시도해볼 수 있는 작은 활동을 저장
+- 저장한 미션은 학생 프로필의 "저장한 미션" 탭에서 확인
+- 전문가는 내 프로필에서 스토리·미션을 등록하고 영향력 지표를 확인
+
 ### 전문가 Q&A
 - 승인된 현직 전문가(AI 연구원, 응급의학과 전문의, UX 디자이너, SF 작가 등)에게 제목+본문 형식으로 질문
 - **공개 Q&A 게시판** — 전체 공개 질문을 전문가 필터·답변 상태 필터·키워드 검색으로 탐색
@@ -77,6 +84,7 @@
 |--------|----------------|-----------|
 | 홈 | `home` | 모두 |
 | 3D 유니버스 | `3d` | 로그인 |
+| 스토리와 미션 | `discovery` | 모두 |
 | 전문가 Q&A | `questions` | 로그인 |
 | AI 진로상담 | `career` | 로그인 |
 | 진로 탐색 영상 | `career_videos` | 모두 |
@@ -95,15 +103,17 @@
 ### 학생 (student)
 - 회원가입 시 학교급·학교명·학년 입력
 - 3D 유니버스에서 관심 노드 저장 및 나만의 우주 구성
+- 스토리와 미션에서 입문 미션 저장
 - 전문가에게 질문 등록 (토큰 소모)
 - AI 진로상담·로드맵 이용
-- 프로필에서 내 질문·답변 현황 확인
+- 프로필에서 저장한 미션, 내 질문·답변 현황 확인
 
 ### 전문가 (expert)
 - 회원가입 시 직함·소속·전공·대분류 분야·활동 노드·소개 입력
 - **관리자 승인 후** 3D 유니버스에 노드로 표시, Q&A 답변 가능
 - 프로필에서 활동 분야 수정 (수정 시 재승인 필요)
 - 목록에 없는 활동 분야를 추가 요청 가능
+- 프로필에서 스토리·입문 미션 등록 및 영향력 지표 확인
 - 답변 1건 등록 시 토큰 1,000개 적립
 
 ### 관리자 (admin)
@@ -198,7 +208,9 @@ future_universe/
         ├── expert_profiles.csv      # 초기 전문가 프로필
         ├── expert_nodes.csv         # 초기 전문가 활동 분야 매핑
         ├── student_profiles.csv     # 초기 학생 프로필
-        └── student_univers.csv      # 초기 학생 관심 노드 저장 현황
+        ├── student_univers.csv      # 초기 학생 관심 노드 저장 현황
+        ├── questions.csv            # 초기 학생 질문
+        └── question_answers.csv     # 초기 전문가 답변
 ```
 
 ---
@@ -232,6 +244,9 @@ future_universe/
 | `my_universe` | 학생별 관심 노드 저장 목록 |
 | `questions` | 학생 → 전문가 질문 — question_title, question_text, is_public |
 | `question_answers` | 전문가 답변 — answer_text, is_new_for_asker |
+| `expert_stories` | 전문가 스토리 — title, story_type, body, field_hint |
+| `expert_missions` | 전문가 입문 미션 — title, mission_text, difficulty, estimated_minutes |
+| `mission_attempts` | 학생별 미션 저장/시도 기록 |
 | `token_transactions` | 토큰 적립·차감 내역 |
 | `universe_nodes` | 관리자가 추가한 커스텀 노드 목록 |
 | `node_requests` | 전문가의 활동 분야 추가 요청 (pending/approved/rejected) |
