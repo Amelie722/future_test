@@ -2506,7 +2506,7 @@ def show_career_filters(df):
 SECTIONS = {
     "퓨처유니버스": [
         ("🏠 홈", "home"),
-        ("🌌 3D 유니버스",   "3d"),
+        ("🌌 Future Universe",   "3d"),
         ("📚 스토리와 미션", "discovery"),
         ("💬 전문가 Q&A",    "questions"),
         ("🤖 AI 진로상담", "career"),
