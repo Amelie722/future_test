@@ -3803,6 +3803,11 @@ elif st.session_state.page == "discovery":
     st.caption("유명하지 않은 분야도 질문이 생기기 전부터 이야기, 관찰, 작은 미션으로 탐색할 수 있습니다.")
 
     account = st.session_state.get("account")
+    if not account:
+        st.warning("스토리와 미션은 로그인 후 이용할 수 있습니다.")
+        st.caption("왼쪽 사이드바에서 로그인하거나 회원가입을 진행해 주세요.")
+        st.stop()
+
     render_hidden_discovery(account, story_limit=12, mission_limit=12)
 
 
