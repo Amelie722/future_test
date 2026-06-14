@@ -2027,22 +2027,6 @@ def render_hidden_discovery(account=None, story_limit=3, mission_limit=3, show_m
         else:
             st.info("아직 입문 미션이 없습니다. 전문가가 등록하면 이곳에 표시됩니다.")
 
-    if account and account.get("role") == "student" and missions:
-        with st.expander("입문 미션 저장하기"):
-            mission_map = {f"{m['title']} · {m['expert_name']}": m for m in missions}
-            selected_mission_label = st.selectbox(
-                "저장할 미션",
-                list(mission_map.keys()),
-                key=f"discovery_mission_select_{story_limit}_{mission_limit}",
-            )
-            if st.button(
-                "내 미션으로 저장",
-                use_container_width=True,
-                key=f"save_discovery_mission_{story_limit}_{mission_limit}",
-            ):
-                save_mission_attempt(mission_map[selected_mission_label]["id"], account["login_id"])
-                st.success("미션을 저장했습니다. 프로필에서 확인할 수 있습니다.")
-
     if show_more_button and st.button("스토리와 미션 더 보기", use_container_width=True, key="home_go_discovery"):
         st.session_state.page = "discovery"
         st.rerun()
