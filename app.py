@@ -1974,9 +1974,6 @@ def save_mission_attempt(mission_id, login_id):
     conn.close()
 
 def render_hidden_discovery(account=None, story_limit=3, mission_limit=3, show_more_button=False):
-    st.markdown('<div class="section-title">스토리와 미션</div>', unsafe_allow_html=True)
-    st.caption("질문이 많지 않아도, 전문가가 먼저 열어둔 이야기와 입문 미션을 탐색합니다.")
-
     stories = get_expert_stories(limit=story_limit)
     missions = get_expert_missions(limit=mission_limit)
     story_cards = []
@@ -3805,7 +3802,7 @@ if st.session_state.page == "home":
 # ══════════════════════════════════════════
 elif st.session_state.page == "discovery":
     st.title("스토리와 미션")
-    st.caption("유명하지 않은 분야도 질문이 생기기 전부터 이야기, 관찰, 작은 미션으로 탐색할 수 있습니다.")
+    st.caption("무엇을 물어봐야 할지 몰라도 괜찮아요. 전문가의 실제 이야기에서 진로의 단서를 발견하고, 작은 미션을 통해 나와 연결되는 가능성을 직접 탐색해보세요.")
 
     account = st.session_state.get("account")
     if not account:
