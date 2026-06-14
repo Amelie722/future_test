@@ -4019,7 +4019,7 @@ elif st.session_state.page == "3d":
 
     with tab_explore:
         # ── 3D 뷰어 (저장 노드 주입) ─────────────────────────────────────
-        html_path = "future_universe_3d (1).html"
+        html_path = "future_universe_3d.html"
         try:
             with open(html_path, "r", encoding="utf-8") as f:
                 html_content = f.read()
