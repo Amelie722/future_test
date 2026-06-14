@@ -1034,6 +1034,27 @@ hr { border-color: rgba(110,170,255,0.38) !important; }
     text-transform: uppercase;
     letter-spacing: 1.8px;
 }
+.sidebar-user-card {
+    background: rgba(74,144,255,0.08);
+    border-radius: 4px;
+    border: 1px solid rgba(170,205,255,0.62);
+    border-left: 2px solid #4A90FF;
+    padding: 0.65rem 0.9rem;
+    margin: 0.2rem 0 1.2rem 0;
+}
+.sidebar-user-name {
+    color: #C8DCFF;
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+.sidebar-user-role {
+    color: #8FA8E8;
+    font-size: 0.72rem;
+    letter-spacing: 0.3px;
+}
+.sidebar-account-actions {
+    height: 0.25rem;
+}
 
 /* ══════════════════════════════════════
    반응형 — 태블릿 (≤ 768px)
@@ -2760,10 +2781,9 @@ with st.sidebar:
         uname      = u.get("display_name") or get_account_display_name(u["account_id"], u["login_id"])
         role_label = {"admin": "관리자", "expert": "전문가", "student": "학생"}.get(u["role"], "계정")
         st.markdown(f"""
-        <div style='background:rgba(74,144,255,0.08);border-radius:4px;border:1px solid rgba(170,205,255,0.62);border-left:2px solid #4A90FF;
-                    padding:0.65rem 0.9rem;margin:0.2rem 0 0.85rem 0;'>
-            <div style='color:#C8DCFF;font-weight:600;font-size:0.88rem;'>{uname}</div>
-            <div style='color:#8FA8E8;font-size:0.72rem;letter-spacing:0.3px;'>{role_label}</div>
+        <div class="sidebar-user-card">
+            <div class="sidebar-user-name">{uname}</div>
+            <div class="sidebar-user-role">{role_label}</div>
         </div>
         """, unsafe_allow_html=True)
         # 역할별 알림 카운트
@@ -2782,6 +2802,7 @@ with st.sidebar:
 
         _profile_label = f"내 프로필  🔴 {_badge_n}" if _badge_n else "내 프로필"
 
+        st.markdown('<div class="sidebar-account-actions"></div>', unsafe_allow_html=True)
         col_profile, col_logout = st.columns(2)
         with col_profile:
             if st.button(_profile_label, use_container_width=True, key="sb_profile"):
